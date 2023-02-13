@@ -17,7 +17,7 @@
     <depends>ByteCodeViewer</depends>
     <depends optional="true" config-file="toml-support.xml">org.toml.lang</depends>
 
-    <id>com.demonwav.minecraft-dev.rfgfork</id>
+    <id>com.demonwav.minecraft-dev</id>
     <name>Minecraft Development (RFG-enabled fork)</name>
     <vendor email="me@eigenraven.me" url="https://eigenraven.me/">eigenraven</vendor>
 
