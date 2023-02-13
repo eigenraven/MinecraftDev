@@ -41,7 +41,7 @@ version = "$ideaVersionName-$coreVersion"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 kotlin {
@@ -186,23 +186,17 @@ tasks.runPluginVerifier {
     ideVersions.addAll("IC-$ideaVersionName")
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
-}
-
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs = listOf("-proc:none")
-    options.release.set(11)
+    options.release.set(17)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
         // K2 causes the following error: https://youtrack.jetbrains.com/issue/KT-52786
-        freeCompilerArgs = listOf(/*"-Xuse-k2", */"-Xjvm-default=all", "-Xjdk-release=11")
+        freeCompilerArgs = listOf(/*"-Xuse-k2", */"-Xjvm-default=all", "-Xjdk-release=17")
         kotlinDaemonJvmArguments.add("-Xmx2G")
     }
 }
