@@ -30,7 +30,7 @@ jobs:
           mkdir -p ~/.gradle/
           echo "GRADLE_USER_HOME=$HOME/.gradle" >> "$GITHUB_ENV"
       - name: Publish plugin
-        run: ./gradlew clean build buildPlugin --no-daemon --stacktrace
+        run: ./gradlew clean assemble buildPlugin --no-daemon --stacktrace
       - name: Get tag name
         id: get_tag
         shell: bash
