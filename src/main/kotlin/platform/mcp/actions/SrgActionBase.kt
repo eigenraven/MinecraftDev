@@ -29,6 +29,7 @@ import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiReference
 import com.intellij.ui.LightColors
 import com.intellij.ui.awt.RelativePoint
+import org.apache.commons.lang.StringEscapeUtils
 
 abstract class SrgActionBase : AnAction() {
 
@@ -83,16 +84,19 @@ abstract class SrgActionBase : AnAction() {
                     val pos = editor.offsetToVisualPosition(element.textRange.endOffset - element.textLength / 2)
                     RelativePoint(
                         editor.contentComponent,
-                        editor.visualPositionToXY(VisualPosition(pos.line + 1, pos.column))
+                        editor.visualPositionToXY(VisualPosition(pos.line + 1, pos.column)),
                     )
-                } else RelativePoint.getCenterOf(statusBar.component)
+                } else {
+                    RelativePoint.getCenterOf(statusBar.component)
+                }
                 balloon.show(at, Balloon.Position.below)
             }
         }
 
         fun showSuccessBalloon(editor: Editor, element: PsiElement, text: String) {
+            val escapedText = StringEscapeUtils.escapeHtml(text)
             val balloon = JBPopupFactory.getInstance()
-                .createHtmlTextBalloonBuilder(text, null, LightColors.SLIGHTLY_GREEN, null)
+                .createHtmlTextBalloonBuilder(escapedText, null, LightColors.SLIGHTLY_GREEN, null)
                 .setHideOnAction(true)
                 .setHideOnClickOutside(true)
                 .setHideOnKeyOutside(true)
@@ -102,7 +106,7 @@ abstract class SrgActionBase : AnAction() {
                 val pos = editor.offsetToVisualPosition(element.textRange.endOffset - element.textLength / 2)
                 val at = RelativePoint(
                     editor.contentComponent,
-                    editor.visualPositionToXY(VisualPosition(pos.line + 1, pos.column))
+                    editor.visualPositionToXY(VisualPosition(pos.line + 1, pos.column)),
                 )
 
                 balloon.show(at, Balloon.Position.below)

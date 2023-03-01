@@ -11,7 +11,7 @@
 package com.demonwav.mcdev.platform.forge.gradle
 
 import com.demonwav.mcdev.platform.forge.ForgeModuleType
-import com.demonwav.mcdev.platform.forge.creator.ForgeRunConfigsStep
+import com.demonwav.mcdev.platform.forge.creator.MAGIC_RUN_CONFIGS_FILE
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.invokeAndWait
 import com.demonwav.mcdev.util.invokeLater
@@ -49,7 +49,7 @@ class ForgeRunConfigDataService : AbstractProjectDataService<ProjectData, Projec
         toImport: Collection<DataNode<ProjectData>>,
         projectData: ProjectData?,
         project: Project,
-        modelsProvider: IdeModifiableModelsProvider
+        modelsProvider: IdeModifiableModelsProvider,
     ) {
         if (projectData == null || projectData.owner != GradleConstants.SYSTEM_ID) {
             return
@@ -57,7 +57,7 @@ class ForgeRunConfigDataService : AbstractProjectDataService<ProjectData, Projec
 
         val baseDir = project.guessProjectDir() ?: return
         val baseDirPath = baseDir.localFile.toPath()
-        val hello = baseDirPath.resolve(Paths.get(".gradle", ForgeRunConfigsStep.HELLO))
+        val hello = baseDirPath.resolve(Paths.get(".gradle", MAGIC_RUN_CONFIGS_FILE))
         if (!Files.isRegularFile(hello)) {
             return
         }
@@ -88,7 +88,7 @@ class ForgeRunConfigDataService : AbstractProjectDataService<ProjectData, Projec
     private fun manualCreate(
         project: Project,
         moduleMap: Map<String, Module>,
-        module: Module
+        module: Module,
     ) {
         invokeLater {
             val mainModule = findMainModule(moduleMap, module)
@@ -137,7 +137,7 @@ class ForgeRunConfigDataService : AbstractProjectDataService<ProjectData, Projec
         moduleMap: Map<String, Module>,
         module: Module,
         task: String,
-        hasData: Boolean
+        hasData: Boolean,
     ) {
         val mainModule = findMainModule(moduleMap, module)
 
@@ -155,7 +155,7 @@ class ForgeRunConfigDataService : AbstractProjectDataService<ProjectData, Projec
 
                     cleanupGeneratedRuns(project, mainModule, hasData)
                 }
-            }
+            },
         )
     }
 

@@ -20,9 +20,11 @@ import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.COERCE
 import com.demonwav.mcdev.platform.mixin.util.hasAccess
 import com.demonwav.mcdev.platform.mixin.util.isAssignable
 import com.demonwav.mcdev.platform.mixin.util.isConstructor
+import com.demonwav.mcdev.platform.mixin.util.isMixinExtrasSugar
 import com.demonwav.mcdev.util.Parameter
 import com.demonwav.mcdev.util.fullQualifiedName
 import com.demonwav.mcdev.util.synchronize
+import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.QuickFixFactory
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
@@ -79,7 +81,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                                 val insns = handler.resolveInstructions(
                                     annotation,
                                     targetMethod.clazz,
-                                    targetMethod.method
+                                    targetMethod.method,
                                 )
                                 shouldBeStatic = insns.any {
                                     methodInsns.indexOf(it.insn) <= methodInsns.indexOf(superCtorCall)
@@ -96,8 +98,8 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                                     modifiers,
                                     PsiModifier.STATIC,
                                     true,
-                                    false
-                                )
+                                    false,
+                                ),
                             )
                         }
                     }
@@ -108,7 +110,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                         val possibleSignatures = handler.expectedMethodSignature(
                             annotation,
                             targetMethod.clazz,
-                            targetMethod.method
+                            targetMethod.method,
                         ) ?: continue
 
                         val annotationName = annotation.nameReferenceElement?.referenceName
@@ -117,7 +119,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                             reportedSignature = true
                             holder.registerProblem(
                                 parameters,
-                                "There are no possible signatures for this injector"
+                                "There are no possible signatures for this injector",
                             )
                             continue
                         }
@@ -148,7 +150,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                                     "Method parameters do not match expected parameters for $annotationName"
                                 val quickFix = ParametersQuickFix(
                                     expectedParameters,
-                                    handler is InjectAnnotationHandler
+                                    handler is InjectAnnotationHandler,
                                 )
                                 if (checkResult == CheckResult.ERROR) {
                                     holder.registerProblem(parameters, description, quickFix)
@@ -157,7 +159,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                                         parameters,
                                         description,
                                         ProblemHighlightType.WARNING,
-                                        quickFix
+                                        quickFix,
                                     )
                                 }
                             }
@@ -175,8 +177,8 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                                     QuickFixFactory.getInstance().createMethodReturnFix(
                                         method,
                                         expectedReturnType,
-                                        false
-                                    )
+                                        false,
+                                    ),
                                 )
                             }
                         }
@@ -210,7 +212,7 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
             expectedReturnType: PsiType,
             methodReturnType: PsiType,
             method: PsiMethod,
-            allowCoerce: Boolean
+            allowCoerce: Boolean,
         ): Boolean {
             val expectedErasure = TypeConversionUtil.erasure(expectedReturnType)
             val returnErasure = TypeConversionUtil.erasure(methodReturnType)
@@ -229,14 +231,15 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
         private fun checkParameters(
             parameterList: PsiParameterList,
             expected: List<ParameterGroup>,
-            allowCoerce: Boolean
+            allowCoerce: Boolean,
         ): CheckResult {
             val parameters = parameterList.parameters
+            val parametersWithoutSugar = parameters.dropLastWhile { it.isMixinExtrasSugar }.toTypedArray()
             var pos = 0
 
             for (group in expected) {
                 // Check if parameter group matches
-                if (group.match(parameters, pos, allowCoerce)) {
+                if (group.match(parametersWithoutSugar, pos, allowCoerce)) {
                     pos += group.size
                 } else if (group.required != ParameterGroup.RequiredLevel.OPTIONAL) {
                     return if (group.required == ParameterGroup.RequiredLevel.ERROR_IF_ABSENT) {
@@ -244,6 +247,15 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                     } else {
                         CheckResult.WARNING
                     }
+                }
+            }
+
+            // Sugars are valid on any injector and should be ignored, as long as they're at the end.
+            while (pos < parameters.size) {
+                if (parameters[pos].isMixinExtrasSugar) {
+                    pos++
+                } else {
+                    break
                 }
             }
 
@@ -268,8 +280,9 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
     }
 
     private class ParametersQuickFix(
+        @SafeFieldForPreview
         private val expected: List<ParameterGroup>,
-        isInject: Boolean
+        isInject: Boolean,
     ) : LocalQuickFix {
 
         private val fixName = if (isInject) {
@@ -288,6 +301,11 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                 return@dropWhile fqname != MixinConstants.Classes.CALLBACK_INFO &&
                     fqname != MixinConstants.Classes.CALLBACK_INFO_RETURNABLE
             }.drop(1) // the first element in the list is the CallbackInfo but we don't want it
+                .takeWhile { !it.isMixinExtrasSugar }
+
+            // We want to preserve sugars, and while we're at it, we might as well move them all to the end
+            val sugars = parameters.parameters.filter { it.isMixinExtrasSugar }
+
             val newParams = expected.flatMapTo(mutableListOf()) {
                 if (it.default) {
                     it.parameters.mapIndexed { i: Int, p: Parameter ->
@@ -295,15 +313,16 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                             p.name ?: JavaCodeStyleManager.getInstance(project)
                                 .suggestVariableName(VariableKind.PARAMETER, null, null, p.type).names
                                 .firstOrNull() ?: "var$i",
-                            p.type
+                            p.type,
                         )
                     }
                 } else {
                     emptyList()
                 }
             }
-            // Restore the captured locals before applying the fix
+            // Restore the captured locals and sugars before applying the fix
             newParams.addAll(locals)
+            newParams.addAll(sugars)
             parameters.synchronize(newParams)
         }
     }
