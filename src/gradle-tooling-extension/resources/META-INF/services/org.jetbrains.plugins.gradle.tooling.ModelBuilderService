@@ -3,3 +3,4 @@ com.demonwav.mcdev.platform.mcp.gradle.tooling.fabricloom.FabricLoomModelBuilder
 com.demonwav.mcdev.platform.mcp.gradle.tooling.vanillagradle.VanillaGradleModelBuilderImpl
 com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG2BuilderImpl
 com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG3BuilderImpl
+com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelRFGBuilderImpl

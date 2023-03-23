@@ -25,15 +25,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Setup publish token
-        env:
-          JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
         shell: bash
         run: |
           mkdir -p ~/.gradle/
           echo "GRADLE_USER_HOME=$HOME/.gradle" >> "$GITHUB_ENV"
-          echo "mcdev.deploy.token=${JETBRAINS_TOKEN}" > ~/.gradle/gradle.properties
       - name: Publish plugin
-        run: ./gradlew clean publishPlugin --no-daemon --stacktrace
+        run: ./gradlew clean assemble buildPlugin --no-daemon --stacktrace
       - name: Get tag name
         id: get_tag
         shell: bash
