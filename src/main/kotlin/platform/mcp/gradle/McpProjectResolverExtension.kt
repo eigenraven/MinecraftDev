@@ -12,8 +12,10 @@ package com.demonwav.mcdev.platform.mcp.gradle
 
 import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelFG2Handler
 import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelFG3Handler
+import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelRFGHandler
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG2
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG3
+import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelRFG
 import com.demonwav.mcdev.util.runGradleTask
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -26,7 +28,7 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
 
     // Register our custom Gradle tooling API model in IntelliJ's project resolver
     override fun getExtraProjectModelClasses(): Set<Class<out Any>> =
-        setOf(McpModelFG2::class.java, McpModelFG3::class.java)
+        setOf(McpModelFG2::class.java, McpModelFG3::class.java, McpModelRFG::class.java)
 
     override fun getToolingExtensionsClasses() = extraProjectModelClasses
 
@@ -79,6 +81,6 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
     }
 
     companion object {
-        private val handlers = listOf(McpModelFG2Handler, McpModelFG3Handler)
+        private val handlers = listOf(McpModelFG2Handler, McpModelFG3Handler, McpModelRFGHandler)
     }
 }

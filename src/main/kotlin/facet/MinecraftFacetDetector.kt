@@ -14,6 +14,8 @@ import com.demonwav.mcdev.platform.PlatformType
 import com.demonwav.mcdev.platform.architectury.framework.ARCHITECTURY_LIBRARY_KIND
 import com.demonwav.mcdev.platform.architectury.framework.ArchitecturyGradleData
 import com.demonwav.mcdev.platform.fabric.framework.FABRIC_LIBRARY_KIND
+import com.demonwav.mcdev.platform.forge.framework.FORGE_LIBRARY_KIND
+import com.demonwav.mcdev.platform.mcp.framework.MCP_LIBRARY_KIND
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.archloom.ArchitecturyModel
 import com.demonwav.mcdev.platform.sponge.framework.SPONGE_LIBRARY_KIND
 import com.demonwav.mcdev.util.ifEmpty
@@ -175,6 +177,14 @@ class MinecraftFacetDetector : StartupActivity {
                         }
 
                         platformKinds.add(SPONGE_LIBRARY_KIND)
+                    }
+                    // RFG Patch: fix auto-detection of the Forge/MCP facets on RFG projects
+                    if (m.name.endsWith(".patchedMc", ignoreCase = false)) {
+                        // RetroFuturaGradle decompiled MC sources
+                        platformKinds.add(FORGE_LIBRARY_KIND)
+                        platformKinds.add(MCP_LIBRARY_KIND)
+                        libraryVersions[FORGE_LIBRARY_KIND] = "1.0"
+                        libraryVersions[MCP_LIBRARY_KIND] = "1.0"
                     }
                     return@forEach true
                 }

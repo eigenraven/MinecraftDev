@@ -10,6 +10,8 @@
 
 package com.demonwav.mcdev.util
 
+import com.demonwav.mcdev.facet.MinecraftFacet
+import com.demonwav.mcdev.platform.mcp.McpModuleType
 import com.intellij.execution.RunConfigurationExtension
 import com.intellij.execution.configurations.DebuggingRunnerData
 import com.intellij.execution.configurations.JavaParameters
@@ -19,12 +21,15 @@ import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.modules
 import org.jdom.Element
+import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
+// RFG Patches: Support gradle run configurations in RFG projects, not just IJ native ones
 abstract class ModuleDebugRunConfigurationExtension : RunConfigurationExtension() {
 
     override fun isApplicableFor(configuration: RunConfigurationBase<*>): Boolean {
-        return configuration is ModuleBasedConfiguration<*, *>
+        return configuration is ModuleBasedConfiguration<*, *> || configuration is GradleRunConfiguration
     }
 
     override fun <T : RunConfigurationBase<*>> updateJavaParameters(
@@ -46,9 +51,22 @@ abstract class ModuleDebugRunConfigurationExtension : RunConfigurationExtension(
             return
         }
 
-        val config = configuration as ModuleBasedConfiguration<*, *>
-        val module = config.configurationModule.module ?: return
-        attachToProcess(handler, module)
+        when (configuration) {
+            is ModuleBasedConfiguration<*, *> -> {
+                val module = configuration.configurationModule.module ?: return
+                attachToProcess(handler, module)
+            }
+
+            is GradleRunConfiguration -> {
+                if (configuration.project.modules.isEmpty()) {
+                    return
+                }
+                val module = configuration.project.modules.find { module ->
+                    MinecraftFacet.getInstance(module)?.isOfType(McpModuleType) == true
+                } ?: return
+                attachToProcess(handler, module)
+            }
+        }
     }
 
     override fun readExternal(runConfiguration: RunConfigurationBase<*>, element: Element) {}

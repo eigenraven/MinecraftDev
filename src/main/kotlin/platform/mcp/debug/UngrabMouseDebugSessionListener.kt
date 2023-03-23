@@ -34,7 +34,9 @@ class UngrabMouseDebugSessionListener(private val process: DebugProcessImpl) : X
         val virtualMachine = debugProcess.virtualMachineProxy as? VirtualMachineProxyImpl ?: return
         val evaluationContext = EvaluationContextImpl(suspendContextImpl, frameProxy)
 
+        // RFG Patch: Fix mouse ungrabbing with lwjgl3ify
         val mouseClass = virtualMachine.classesByName("org.lwjgl.input.Mouse")?.singleOrNull() as? ClassType
+            ?: virtualMachine.classesByName("org.lwjglx.input.Mouse")?.singleOrNull() as? ClassType
         // LWJGL 3 does not have the Mouse class, Minecraft uses its own MouseHelper instead
         if (mouseClass != null) {
             ungrab2(mouseClass, virtualMachine, debugProcess, evaluationContext)
