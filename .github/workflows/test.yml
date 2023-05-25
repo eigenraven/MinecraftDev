@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: ['*']
 
+env:
+  NO_SENTRY: true
+
 jobs:
   build:
     name: Build
