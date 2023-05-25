@@ -25,8 +25,6 @@ jobs:
         with:
           cache-read-only: true
       - name: Setup publish token
-        env:
-          JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
         shell: bash
         run: |
           mkdir -p ~/.gradle/
@@ -37,7 +35,7 @@ jobs:
           mkdir -p ~/.gradle/
           echo -e '\norg.gradle.jvmargs=-Xmx4G\n' >> ~/.gradle/gradle.properties
       - name: Publish plugin
-        run: ./gradlew clean :publishPlugin --stacktrace
+        run: ./gradlew clean :assemble :publishPlugin --stacktrace
       - name: Get tag name
         id: get_tag
         shell: bash
@@ -53,8 +51,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
-          name: 'Release ${{ steps.get_tag.outputs.release }}'
-          body: '## [View all plugin releases here.](https://plugins.jetbrains.com/plugin/8327-minecraft-development/versions/stable/)'
+          name: 'Release ${{ github.ref_name }}'
+          body: 'RFG-enabled fork'
           prerelease: false
           draft: false
           files: build/distributions/*.zip
