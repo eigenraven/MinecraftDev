@@ -24,10 +24,12 @@ import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelFG2Handler
 import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelFG3Handler
 import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelNG7Handler
 import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelNMDHandler
+import com.demonwav.mcdev.platform.mcp.gradle.datahandler.McpModelRFGHandler
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG2
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelFG3
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelNG7
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelNMD
+import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelRFG
 import com.demonwav.mcdev.util.runGradleTask
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -40,7 +42,13 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
 
     // Register our custom Gradle tooling API model in IntelliJ's project resolver
     override fun getExtraProjectModelClasses(): Set<Class<out Any>> =
-        setOf(McpModelFG2::class.java, McpModelFG3::class.java, McpModelNG7::class.java, McpModelNMD::class.java)
+        setOf(
+            McpModelFG2::class.java,
+            McpModelFG3::class.java,
+            McpModelNG7::class.java,
+            McpModelNMD::class.java,
+            McpModelRFG::class.java
+        )
 
     override fun getToolingExtensionsClasses() = extraProjectModelClasses
 
@@ -66,7 +74,7 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
     }
 
     private fun findAllTaskNames(node: DataNode<*>): List<String> {
-        fun findAllTaskNames(node: DataNode<*>, taskNames: MutableList<String>) {
+        fun findAllTaskNames(node: DataNode<*>, taskNames: MutableSet<String>) {
             val data = node.data
             if (data is McpModelData) {
                 data.taskName?.let { taskName ->
@@ -78,9 +86,9 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
             }
         }
 
-        val res = arrayListOf<String>()
+        val res = hashSetOf<String>()
         findAllTaskNames(node, res)
-        return res
+        return res.toList()
     }
 
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
@@ -93,6 +101,7 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
     }
 
     companion object {
-        private val handlers = listOf(McpModelFG2Handler, McpModelFG3Handler, McpModelNG7Handler, McpModelNMDHandler)
+        private val handlers =
+            listOf(McpModelFG2Handler, McpModelFG3Handler, McpModelNG7Handler, McpModelNMDHandler, McpModelRFGHandler)
     }
 }

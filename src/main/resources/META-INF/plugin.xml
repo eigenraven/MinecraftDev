@@ -30,11 +30,11 @@
     <depends optional="true" config-file="toml-support.xml">org.toml.lang</depends>
 
     <id>com.demonwav.minecraft-dev</id>
-    <name>Minecraft Development</name>
-    <vendor email="kyle@denwav.dev" url="https://mcdev.io/">minecraft-dev</vendor>
+    <name>Minecraft Development (RFG-enabled fork)</name>
+    <vendor email="me@eigenraven.me" url="https://eigenraven.me/">eigenraven</vendor>
 
     <description><![CDATA[
-        Provides first-class support for every major Java Minecraft modding or plugin development platform, including:
+        RetroFuturaGradle-enabled. Provides first-class support for every major Java Minecraft modding or plugin development platform, including:
         <ul>
           <li>Bukkit</li>
           <li>Spigot</li>

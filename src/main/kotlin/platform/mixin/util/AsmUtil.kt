@@ -42,6 +42,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
@@ -222,8 +223,18 @@ fun findClassNodeByPsiClass(psiClass: PsiClass, module: Module? = psiClass.findM
                 // find compiler output
                 if (module == null) return@lockedCached null
                 val fqn = psiClass.fullQualifiedName ?: return@lockedCached null
-                var parentDir = CompilerModuleExtension.getInstance(module)?.compilerOutputPath
-                    ?: return@lockedCached null
+                // RFG Patch: navigate to Minecraft sources if it's a source module and not a library
+                var parentDir =
+                    if (module.name.endsWith("patchedMc")) {
+                        // Guess module dir -> MOD/build/rfg/minecraft-src/java
+                        module.guessModuleDir()
+                            ?.parent?.parent?.parent
+                            ?.findFileByRelativePath("classes")
+                            ?.findFileByRelativePath("java")
+                            ?.findFileByRelativePath("patchedMc") ?: return@lockedCached null
+                    } else {
+                        CompilerModuleExtension.getInstance(module)?.compilerOutputPath ?: return@lockedCached null
+                    }
                 val packageName = fqn.substringBeforeLast('.', "")
                 if (packageName.isNotEmpty()) {
                     for (dir in packageName.split('.')) {
@@ -400,7 +411,10 @@ fun ClassNode.findSourceClass(project: Project, scope: GlobalSearchScope, canDec
         val stubFile = stubClass.containingFile ?: return@findQualifiedClass null
         val classFile = stubFile.virtualFile
         if (classFile != null) {
-            val sourceFile = JavaEditorFileSwapper.findSourceFile(project, classFile)
+            // RFG patch: Minecraft is a SourceSet and not a library
+            val sourceFile = if (classFile.extension == "java")
+                classFile else
+                JavaEditorFileSwapper.findSourceFile(project, classFile)
             if (sourceFile != null) {
                 val sourceClass = (PsiManager.getInstance(project).findFile(sourceFile) as? PsiJavaFile)
                     ?.classes?.firstOrNull()
