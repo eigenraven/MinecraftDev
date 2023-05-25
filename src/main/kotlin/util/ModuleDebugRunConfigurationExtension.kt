@@ -35,6 +35,7 @@ import com.intellij.openapi.project.modules
 import org.jdom.Element
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
+// RFG Patches: Support gradle run configurations in RFG projects, not just IJ native ones
 abstract class ModuleDebugRunConfigurationExtension : RunConfigurationExtension() {
 
     override fun isApplicableFor(configuration: RunConfigurationBase<*>): Boolean {

@@ -4,6 +4,9 @@ on:
     tags:
       - '*'
 
+env:
+  NO_SENTRY: true
+
 jobs:
   publish:
     name: Publish
@@ -24,10 +27,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: true
-      - name: Setup tokens
-        env:
-          JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
-          SENTRY_TOKEN: ${{ secrets.SENTRY_TOKEN }}
+      - name: Setup publish token
         shell: bash
         run: |
           mkdir -p ~/.gradle/
@@ -44,26 +44,17 @@ jobs:
           echo tag=$tag_name >> $GITHUB_OUTPUT
           version_array=(${tag_name//-/ })
           echo release=${version_array[1]}-${version_array[0]} >> $GITHUB_OUTPUT
-      - name: Create Sentry release
-        uses: getsentry/action-release@v3
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
-          SENTRY_ORG: mcdev
-          SENTRY_PROJECT: mcdev
-          SENTRY_URL: https://sentry.mcdev.io
-        with:
-          environment: production
-          release: ${{ steps.get_tag.outputs.release }}
+
       - name: Publish plugin
-        run: ./gradlew clean :sentryUploadSourceBundleJava :publishPlugin --stacktrace
+        run: ./gradlew clean :assemble :buildPlugin --stacktrace
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
-          name: 'Release ${{ steps.get_tag.outputs.release }}'
-          body: '## [View all plugin releases here.](https://plugins.jetbrains.com/plugin/8327-minecraft-development/versions/stable/)'
+          name: 'Release ${{ github.ref_name }}'
+          body: 'RFG-enabled fork'
           prerelease: false
           draft: false
           files: build/distributions/*.zip
