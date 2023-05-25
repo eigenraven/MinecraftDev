@@ -1,7 +1,24 @@
-<p align="center"><a href="https://minecraftdev.org/"><img src="https://minecraftdev.org/assets/icon.svg" height="120" alt="logo"/></a></p>
+1.7-1.12 support fork of Minecraft Development for IntelliJ
+==================================
+
+Fork-specific features
+----------------------
+
+- Release mouse capture on debug breakpoints for LWJGL2 and Lwjgl3ify projects
+- Proper detection of old ForgeGradle and RetroFuturaGradle minecraft project types, including mapping paths
+- Allows the mixin plugin to work correctly on 1.7 and 1.12 projects, potentially more versions (untested)
+
+RFG-Enabled Fork Installation
+------------
+
+1. Go into the plugins menu in IntelliJ (Settings -> Plugins)
+1. Click the gear icon on the top, and click "Manage Plugin Repositories"
+1. Add a raw GitHub link to the update file in the [updates directory](https://github.com/eigenraven/MinecraftDev/tree/rfg/updates), corresponding to the version of IntelliJ you have. For example, if you have 2024.1, use https://raw.githubusercontent.com/eigenraven/MinecraftDev/rfg/updates/updatePlugins-241.xml
+1. MinecraftDev should now show an update if you have the official version installed, which corresponds to Earth's edition of MinecraftDev. If you didn't have the official version installed, installing MinecraftDev will also install the RFG edition.
+
 
 Minecraft Development for IntelliJ
-==================================
+----------------------------------
 
 <table>
     <tr>
@@ -43,8 +60,7 @@ Info and Documentation [![Current Release](https://img.shields.io/badge/release-
 Visit [https://minecraftdev.org](https://minecraftdev.org) for some information about the project.
 
 
-Installation
-------------
+### Installation instructions for the official project:
 
 This plugin is available on the [JetBrains IntelliJ plugin repository](https://plugins.jetbrains.com/plugin/8327).
 
