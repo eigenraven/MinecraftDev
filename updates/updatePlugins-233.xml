@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugins>
+  <plugin id='com.demonwav.minecraft-dev' url='https://github.com/eigenraven/MinecraftDev/releases/download/RFG-1.6.13-2023.3/Minecraft.Development-2023.3-1.6.13.zip' version='2023.3-1.6.13'>
+    <idea-version since-build='233.11799.172' until-build='233.*' />
+    <name>Minecraft Development (RFG-Enabled)</name>
+    <description><![CDATA[
+      RetroFuturaGradle-enabled. Provides first-class support for every major Java Minecraft modding or plugin development platform, including:
+      <ul>
+        <li>Bukkit</li>
+        <li>Spigot</li>
+        <li>Paper</li>
+        <li>Sponge</li>
+        <li>Forge</li>
+        <li>Fabric</li>
+        <li>Architectury</li>
+        <li>Velocity</li>
+        <li>BungeeCord</li>
+      </ul>
+
+      Also includes additional features supporting MCP mappings and Mixins for mod development. This plugin also
+      includes a text-based NBT editor.
+    ]]></description>
+    <change-notes><![CDATA[
+      <div>
+      RFG-enabled fork
+      </div>
+    ]]></change-notes>
+
+  </plugin>
+</plugins>
