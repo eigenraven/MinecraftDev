@@ -47,10 +47,15 @@ object McpModelRFGHandler : McpModelDataHandler {
             data.minecraftVersion
         )
 
+        var task = node.data.id;
+        if (!task.endsWith(":")) task += ":"
+
+        task += "generateForgeSrgMappings"
+
         val modelData = McpModelData(
             node.data,
             state,
-            "generateForgeSrgMappings",
+            task,
             data.accessTransformers
         )
 
@@ -64,7 +69,7 @@ object McpModelRFGHandler : McpModelDataHandler {
                     data.mappingFiles.find { it.endsWith("mcp-srg.srg") },
                     SrgType.SRG
                 ),
-                "generateForgeSrgMappings",
+                task,
                 data.accessTransformers
             )
         )

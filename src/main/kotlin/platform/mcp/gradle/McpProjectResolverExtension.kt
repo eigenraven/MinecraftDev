@@ -64,7 +64,7 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
     }
 
     private fun findAllTaskNames(node: DataNode<*>): List<String> {
-        fun findAllTaskNames(node: DataNode<*>, taskNames: MutableList<String>) {
+        fun findAllTaskNames(node: DataNode<*>, taskNames: MutableSet<String>) {
             val data = node.data
             if (data is McpModelData) {
                 data.taskName?.let { taskName ->
@@ -76,9 +76,9 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
             }
         }
 
-        val res = arrayListOf<String>()
+        val res = hashSetOf<String>()
         findAllTaskNames(node, res)
-        return res
+        return res.toList()
     }
 
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
