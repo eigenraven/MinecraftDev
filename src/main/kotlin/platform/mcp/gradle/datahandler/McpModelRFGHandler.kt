@@ -47,8 +47,13 @@ object McpModelRFGHandler : McpModelDataHandler {
             data.minecraftVersion
         )
 
+        // This check is based purely on observation
         var task = node.data.id;
-        if (!task.endsWith(":")) task += ":"
+        if (!task.startsWith(":")) { // MC project is root
+            task = ":"
+        } else if (!task.endsWith(":")) { // MC project is not the root
+            task += ":"
+        }
 
         task += "generateForgeSrgMappings"
 
