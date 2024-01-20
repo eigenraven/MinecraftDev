@@ -48,7 +48,7 @@ object McpModelRFGHandler : McpModelDataHandler {
         )
 
         // This check is based purely on observation
-        var task = node.data.id;
+        var task = node.data.id
         if (!task.startsWith(":")) { // MC project is root
             task = ":"
         } else if (!task.endsWith(":")) { // MC project is not the root
