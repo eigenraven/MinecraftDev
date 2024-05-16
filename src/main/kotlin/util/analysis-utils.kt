@@ -24,7 +24,6 @@ import com.intellij.codeInsight.daemon.impl.analysis.HighlightControlFlowUtil
 import com.intellij.psi.PsiCodeBlock
 import com.intellij.psi.controlFlow.AnalysisCanceledException
 import com.intellij.psi.controlFlow.ControlFlowUtil
-import kotlin.jvm.Throws
 
 @Throws(AnalysisCanceledException::class)
 fun hasImplicitReturnStatement(body: PsiCodeBlock): Boolean {

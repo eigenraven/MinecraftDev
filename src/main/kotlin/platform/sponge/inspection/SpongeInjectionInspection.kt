@@ -56,8 +56,8 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiVariable
-import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.createSmartPointer
+import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.siyeh.ig.BaseInspection
 import com.siyeh.ig.BaseInspection.formatString
 import com.siyeh.ig.ui.UiUtils

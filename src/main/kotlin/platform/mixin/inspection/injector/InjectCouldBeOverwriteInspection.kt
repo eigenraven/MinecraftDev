@@ -74,9 +74,9 @@ import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiReturnStatement
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.codeStyle.VariableKind
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.impl.light.LightParameter
 import com.intellij.psi.search.LocalSearchScope
-import com.intellij.psi.createSmartPointer
 import com.siyeh.ig.dataflow.UnnecessaryLocalVariableInspection
 import com.siyeh.ig.psiutils.VariableNameGenerator
 import org.objectweb.asm.Type
