@@ -48,6 +48,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiUtil
 import java.lang.invoke.MethodHandles
 import java.util.Locale
 import kotlin.math.min
@@ -304,7 +305,7 @@ fun String.getSimilarity(text: String, bonus: Int = 0): Int {
     return distance + bonus
 }
 
-fun String.isJavaKeyword() = JavaLexer.isSoftKeyword(this, LanguageLevel.HIGHEST)
+fun String.isJavaKeyword() = PsiUtil.isSoftKeyword(this, LanguageLevel.HIGHEST)
 
 fun String.toJavaIdentifier(allowDollars: Boolean = true): String {
     if (this.isEmpty()) {
