@@ -76,7 +76,7 @@ import com.intellij.psi.PsiTypes
 import com.intellij.psi.codeStyle.VariableKind
 import com.intellij.psi.impl.light.LightParameter
 import com.intellij.psi.search.LocalSearchScope
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.siyeh.ig.dataflow.UnnecessaryLocalVariableInspection
 import com.siyeh.ig.psiutils.VariableNameGenerator
 import org.objectweb.asm.Type
@@ -301,7 +301,7 @@ class InjectCouldBeOverwriteInspection : MixinInspection() {
             // delete parameters not before the callback info parameter
             val paramsToDelete = oldMethod.parameterList.parameters.asSequence()
                 .dropWhile { !isCallbackInfoParam(it) }
-                .map { it.createSmartPointer(project) }
+                .map { it.createSmartPointer() }
                 .toList()
             for (param in paramsToDelete) {
                 param.element?.delete()

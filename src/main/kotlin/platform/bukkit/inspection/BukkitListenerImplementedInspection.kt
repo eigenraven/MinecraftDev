@@ -26,7 +26,7 @@ import com.demonwav.mcdev.util.extendsOrImplements
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.siyeh.ig.BaseInspection
 import com.siyeh.ig.BaseInspectionVisitor
 import com.siyeh.ig.InspectionGadgetsFix

@@ -37,12 +37,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiReference
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.ui.LightColors
 import com.intellij.ui.awt.RelativePoint
 import java.awt.Point
 import javax.swing.JComponent
-import org.apache.commons.text.StringEscapeUtils
 
 abstract class SrgActionBase : AnAction() {
 
@@ -121,9 +120,8 @@ abstract class SrgActionBase : AnAction() {
         }
 
         fun showSuccessBalloon(editor: Editor, element: PsiElement, text: String) {
-            val escapedText = StringEscapeUtils.escapeHtml4(text)
             val balloon = JBPopupFactory.getInstance()
-                .createHtmlTextBalloonBuilder(escapedText, null, LightColors.SLIGHTLY_GREEN, null)
+                .createHtmlTextBalloonBuilder(text, null, LightColors.SLIGHTLY_GREEN, null)
                 .setHideOnAction(true)
                 .setHideOnClickOutside(true)
                 .setHideOnKeyOutside(true)

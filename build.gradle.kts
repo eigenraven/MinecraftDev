@@ -21,9 +21,9 @@
 import org.cadixdev.gradle.licenser.header.HeaderStyle
 import org.cadixdev.gradle.licenser.tasks.LicenseUpdate
 import org.gradle.internal.jvm.Jvm
-import org.jetbrains.gradle.ext.settings
-import org.jetbrains.gradle.ext.taskTriggers
-import org.jetbrains.intellij.tasks.PrepareSandboxTask
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
+import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
@@ -34,14 +34,13 @@ plugins {
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij") version "1.17.2"
+    id("org.jetbrains.intellij.platform") version "2.0.0-beta2"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
 
 val ideaVersionName: String by project
 val coreVersion: String by project
-val pluginTomlVersion: String by project
 
 val gradleToolingExtension: Configuration by configurations.creating
 val testLibs: Configuration by configurations.creating {
@@ -54,6 +53,7 @@ version = "$ideaVersionName-$coreVersion"
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.JETBRAINS)
     }
 }
 kotlin {
@@ -85,7 +85,12 @@ repositories {
             includeModule("net.fabricmc", "mapping-io")
         }
     }
+    maven("https://www.jetbrains.com/intellij-repository/snapshots")
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
@@ -113,6 +118,26 @@ dependencies {
         }
     }
     grammarKit(libs.grammarKit)
+
+    intellijPlatform {
+        intellijIdeaCommunity("242-EAP-SNAPSHOT")
+        bundledPlugin("com.intellij.java.ide")
+        bundledPlugin("org.jetbrains.idea.maven")
+        bundledPlugin("com.intellij.gradle")
+        bundledPlugin("org.intellij.groovy")
+//        bundledPlugin("org.jetbrains.kotlin")
+        bundledPlugin("ByteCodeViewer")
+        bundledPlugin("com.intellij.properties")
+        bundledPlugin("org.toml.lang")
+
+        // needed dependencies for unit tests
+        bundledPlugin("JUnit")
+
+        instrumentationTools()
+
+        testFramework(TestFrameworkType.Platform.JUnit5)
+        testFramework(TestFrameworkType.Plugin.Java)
+    }
 
     testLibs(libs.test.mockJdk)
     testLibs(libs.test.mixin)
@@ -166,32 +191,11 @@ configurations.compileClasspath {
     attributes.attribute(filtered, true)
 }
 
-intellij {
-    // IntelliJ IDEA dependency
-    version.set(providers.gradleProperty("ideaVersion"))
-    // Bundled plugin dependencies
-    plugins.addAll(
-        "java",
-        "maven",
-        "gradle",
-        "Groovy",
-        "Kotlin",
-        "org.toml.lang:$pluginTomlVersion",
-        "ByteCodeViewer",
-        "properties",
-        // needed dependencies for unit tests
-        "junit"
-    )
-
-    pluginName.set("Minecraft Development")
-    updateSinceUntilBuild.set(true)
-
-    downloadSources.set(providers.gradleProperty("downloadIdeaSources").map { it.toBoolean() })
-
-    sandboxDir.set(layout.projectDirectory.dir(".sandbox").toString())
+intellijPlatform {
+    sandboxContainer.set(layout.projectDirectory.dir(".sandbox"))
 }
 
-tasks.publishPlugin {
+tasks.withType<PublishPluginTask> {
     // Build numbers are used for
     properties["buildNumber"]?.let { buildNumber ->
         project.version = "${project.version}-$buildNumber"
@@ -200,10 +204,6 @@ tasks.publishPlugin {
         token.set(deployToken.toString())
     }
     channels.add(properties["mcdev.deploy.channel"]?.toString() ?: "Stable")
-}
-
-tasks.runPluginVerifier {
-    ideVersions.addAll("IC-$ideaVersionName")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -272,10 +272,10 @@ tasks.test {
 }
 
 idea {
-    project.settings.taskTriggers.afterSync("generate")
+    // project.settings.taskTriggers.afterSync("generate")
     module {
         generatedSourceDirs.add(file("build/gen"))
-        excludeDirs.add(file(intellij.sandboxDir.get()))
+        excludeDirs.add(intellijPlatform.sandboxContainer.get().asFile)
         isDownloadJavadoc = true
         isDownloadSources = true
     }

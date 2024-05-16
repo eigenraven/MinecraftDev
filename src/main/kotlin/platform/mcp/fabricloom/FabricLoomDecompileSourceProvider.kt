@@ -24,8 +24,8 @@ import com.demonwav.mcdev.platform.forge.inspections.sideonly.Side
 import com.demonwav.mcdev.platform.forge.inspections.sideonly.SideOnlyUtil
 import com.demonwav.mcdev.util.findModule
 import com.demonwav.mcdev.util.runGradleTaskWithCallback
+import com.demonwav.mcdev.util.runWriteActionAndWait
 import com.intellij.codeInsight.AttachSourcesProvider
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.externalSystem.task.TaskCallback
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.OrderRootType

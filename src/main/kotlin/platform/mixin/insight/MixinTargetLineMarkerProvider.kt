@@ -38,7 +38,7 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.PsiNavigateUtil
 import java.awt.event.MouseEvent

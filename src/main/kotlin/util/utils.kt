@@ -27,6 +27,7 @@ import com.intellij.lang.java.lexer.JavaLexer
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -41,6 +42,7 @@ import com.intellij.openapi.roots.libraries.LibraryKindRegistry
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.profile.codeInspection.InspectionProfileManager
@@ -107,6 +109,10 @@ fun invokeLaterAny(func: () -> Unit) {
 
 fun <T> invokeEdt(block: () -> T): T {
     return AppUIExecutor.onUiThread().submit(block).get()
+}
+
+inline fun <T> runWriteActionAndWait(crossinline action: () -> T): T {
+    return WriteAction.computeAndWait(ThrowableComputable { action() })
 }
 
 inline fun <T : Any?> PsiFile.runWriteAction(crossinline func: () -> T) =

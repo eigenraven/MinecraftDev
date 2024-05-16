@@ -35,7 +35,7 @@ import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.parentOfType
 import java.util.Locale
 import org.objectweb.asm.tree.ClassNode

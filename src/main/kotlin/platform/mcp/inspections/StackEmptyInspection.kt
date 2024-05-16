@@ -35,7 +35,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.util.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.siyeh.ig.BaseInspection
 import com.siyeh.ig.BaseInspectionVisitor
 import com.siyeh.ig.InspectionGadgetsFix
