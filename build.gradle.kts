@@ -121,7 +121,7 @@ dependencies {
     grammarKit(libs.grammarKit)
 
     intellijPlatform {
-        intellijIdeaCommunity("242-EAP-SNAPSHOT")
+        intellijIdeaCommunity(providers.gradleProperty("ideaVersion"))
         bundledPlugin("com.intellij.java.ide")
         bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("com.intellij.gradle")
