@@ -125,6 +125,7 @@ dependencies {
         bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("com.intellij.gradle")
         bundledPlugin("org.intellij.groovy")
+        // For some reason the Kotlin plugin can't be resolved...
 //        bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("ByteCodeViewer")
         bundledPlugin("com.intellij.properties")
@@ -272,7 +273,6 @@ tasks.test {
 }
 
 idea {
-    // project.settings.taskTriggers.afterSync("generate")
     module {
         generatedSourceDirs.add(file("build/gen"))
         excludeDirs.add(intellijPlatform.sandboxContainer.get().asFile)
