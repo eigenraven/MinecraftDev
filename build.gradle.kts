@@ -29,7 +29,7 @@ import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 
 plugins {
-    kotlin("jvm") version "2.0.0-RC3"
+    kotlin("jvm") version "1.9.22"
     java
     mcdev
     groovy
