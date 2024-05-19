@@ -23,7 +23,6 @@ package com.demonwav.mcdev.util
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.lang.java.lexer.JavaLexer
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
