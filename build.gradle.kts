@@ -34,7 +34,7 @@ plugins {
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij.platform") version "2.0.0-beta2"
+    id("org.jetbrains.intellij.platform") version "2.0.0-beta3"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
@@ -376,7 +376,7 @@ tasks.register("cleanSandbox", Delete::class) {
 
 tasks.withType<PrepareSandboxTask> {
     from(externalAnnotationsJar) {
-        into("Minecraft Development/lib/resources")
+        into("MinecraftDev/lib/resources")
     }
 }
 
