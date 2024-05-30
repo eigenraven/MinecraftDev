@@ -29,12 +29,12 @@ import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "1.9.24"
     java
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij.platform") version "2.0.0-beta3"
+    id("org.jetbrains.intellij.platform") version "2.0.0-beta5"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
@@ -86,7 +86,6 @@ repositories {
             includeModule("net.fabricmc", "mapping-io")
         }
     }
-    maven("https://www.jetbrains.com/intellij-repository/snapshots")
     mavenCentral()
 
     intellijPlatform {
@@ -394,5 +393,11 @@ tasks.runIde {
 
 tasks.buildSearchableOptions {
     // not working atm
+    enabled = false
+}
+
+tasks.verifyPluginProjectConfiguration {
+    // Breaks since IJGP 2.0.0-beta5 :(
+    setDependsOn(emptyList<Any>())
     enabled = false
 }
