@@ -20,8 +20,10 @@
 
 package com.demonwav.mcdev.framework
 
-import com.demonwav.mcdev.util.invokeEdt
+import com.intellij.openapi.application.EDT
 import java.lang.reflect.Method
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.InvocationInterceptor
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext
@@ -60,7 +62,7 @@ class EdtInterceptor : InvocationInterceptor {
             return
         }
 
-        val thrown = invokeEdt {
+        val thrown = runBlocking(Dispatchers.EDT) {
             runCatching {
                 invocation.proceed()
             }.exceptionOrNull()

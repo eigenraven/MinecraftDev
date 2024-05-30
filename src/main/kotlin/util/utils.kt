@@ -23,7 +23,6 @@ package com.demonwav.mcdev.util
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
@@ -105,10 +104,6 @@ fun invokeLater(expired: Condition<*>, func: () -> Unit) {
 
 fun invokeLaterAny(func: () -> Unit) {
     ApplicationManager.getApplication().invokeLater(func, ModalityState.any())
-}
-
-fun <T> invokeEdt(block: () -> T): T {
-    return AppUIExecutor.onUiThread().submit(block).get()
 }
 
 inline fun <T> runWriteActionAndWait(crossinline action: () -> T): T {
