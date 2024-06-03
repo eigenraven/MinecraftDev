@@ -22,9 +22,9 @@ package com.demonwav.mcdev.nbt.lang.format
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.nbt.lang.NbttLanguage
-import com.intellij.CodeStyleBundle
 import com.intellij.application.options.IndentOptionsEditor
 import com.intellij.application.options.SmartIndentOptionsEditor
+import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
@@ -44,9 +44,9 @@ class NbttLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider(
                     "Wrap list items",
                     CodeStyleSettingsCustomizableOptions.getInstance().WRAPPING_BRACES,
                     arrayOf(
-                        CodeStyleBundle.message("wrapping.do.not.wrap"),
-                        CodeStyleBundle.message("wrapping.wrap.if.long"),
-                        CodeStyleBundle.message("wrapping.wrap.always"),
+                        CodeStyleSettings.WrapStyle.DO_NOT_WRAP.presentableText,
+                        CodeStyleSettings.WrapStyle.WRAP_AS_NEEDED.presentableText,
+                        CodeStyleSettings.WrapStyle.WRAP_ALWAYS.presentableText,
                     ),
                     intArrayOf(
                         CommonCodeStyleSettings.DO_NOT_WRAP,
@@ -60,9 +60,9 @@ class NbttLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider(
                     "Wrap array items",
                     CodeStyleSettingsCustomizableOptions.getInstance().WRAPPING_BRACES,
                     arrayOf(
-                        CodeStyleBundle.message("wrapping.do.not.wrap"),
-                        CodeStyleBundle.message("wrapping.wrap.if.long"),
-                        CodeStyleBundle.message("wrapping.wrap.always"),
+                        CodeStyleSettings.WrapStyle.DO_NOT_WRAP.presentableText,
+                        CodeStyleSettings.WrapStyle.WRAP_AS_NEEDED.presentableText,
+                        CodeStyleSettings.WrapStyle.WRAP_ALWAYS.presentableText,
                     ),
                     intArrayOf(
                         CommonCodeStyleSettings.DO_NOT_WRAP,

@@ -31,7 +31,7 @@ import com.github.kittinunf.fuel.coroutines.awaitString
 import com.google.gson.Gson
 import com.intellij.openapi.diagnostic.Attachment
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.util.proxy.CommonProxy
+import com.intellij.util.net.JdkProxyProvider
 import java.io.IOException
 import java.net.Proxy
 import java.net.URI
@@ -103,7 +103,7 @@ fun selectProxy(urlText: String): Proxy? {
     val uri = URI(urlText)
     val url = uri.toURL()
 
-    val proxies = CommonProxy.getInstance().select(uri)
+    val proxies = JdkProxyProvider.getInstance().proxySelector.select(uri)
     for (proxy in proxies) {
         try {
             url.openConnection(proxy)
