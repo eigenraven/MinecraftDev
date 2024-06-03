@@ -138,6 +138,8 @@ dependencies {
 
         testFramework(TestFrameworkType.Platform.JUnit5)
         testFramework(TestFrameworkType.Plugin.Java)
+
+        pluginVerifier()
     }
 
     testLibs(libs.test.mockJdk)
@@ -194,6 +196,12 @@ configurations.compileClasspath {
 
 intellijPlatform {
     sandboxContainer.set(layout.projectDirectory.dir(".sandbox"))
+
+    verifyPlugin {
+        ides {
+            recommended()
+        }
+    }
 }
 
 tasks.withType<PublishPluginTask> {
