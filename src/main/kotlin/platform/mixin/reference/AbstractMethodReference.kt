@@ -83,7 +83,9 @@ abstract class AbstractMethodReference : PolyReferenceResolver(), MixinReference
         val stringValue = context.constantStringValue ?: return false
         val targetMethodInfo = parseSelector(stringValue, context) ?: return false
         val targets = getTargets(context) ?: return false
-        return !targets.asSequence().flatMap { it.findMethods(targetMethodInfo) }.any()
+        return !targets.asSequence().flatMap {
+            targetMethodInfo.getCustomOwner(it).findMethods(targetMethodInfo)
+        }.any()
     }
 
     fun getReferenceIfAmbiguous(context: PsiElement): MemberReference? {
@@ -125,7 +127,10 @@ abstract class AbstractMethodReference : PolyReferenceResolver(), MixinReference
         selector: MixinSelector,
     ): Sequence<ClassAndMethodNode> {
         return targets.asSequence()
-            .flatMap { target -> target.findMethods(selector).map { ClassAndMethodNode(target, it) } }
+            .flatMap { target ->
+                val actualTarget = selector.getCustomOwner(target)
+                actualTarget.findMethods(selector).map { ClassAndMethodNode(actualTarget, it) }
+            }
     }
 
     fun resolveIfUnique(context: PsiElement): ClassAndMethodNode? {

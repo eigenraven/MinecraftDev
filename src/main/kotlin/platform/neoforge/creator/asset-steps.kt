@@ -41,6 +41,7 @@ import com.demonwav.mcdev.creator.step.UseMixinsStep
 import com.demonwav.mcdev.creator.step.WebsiteStep
 import com.demonwav.mcdev.platform.forge.util.ForgePackDescriptor
 import com.demonwav.mcdev.util.MinecraftTemplates
+import com.demonwav.mcdev.util.MinecraftVersions
 import com.demonwav.mcdev.util.SemanticVersion
 import com.intellij.ide.wizard.NewProjectWizardStep
 import com.intellij.openapi.project.Project
@@ -101,21 +102,37 @@ class NeoForgeProjectFilesStep(parent: NewProjectWizardStep) : AbstractLongRunni
             assets.addTemplateProperties("WEBSITE" to website)
         }
 
-        val mainClassTemplate = MinecraftTemplates.NEOFORGE_MAIN_CLASS_TEMPLATE
+        val mainClassTemplate = when {
+            mcVersion >= MinecraftVersions.MC1_20_5 -> MinecraftTemplates.NEOFORGE_1_20_5_MAIN_CLASS_TEMPLATE
+            else -> MinecraftTemplates.NEOFORGE_MAIN_CLASS_TEMPLATE
+        }
+
+        val (modManifestName, modManifestTemplate) = when {
+            mcVersion >= MinecraftVersions.MC1_20_5 ->
+                "neoforge.mods.toml" to MinecraftTemplates.NEOFORGE_NEOFORGE_MODS_TOML_TEMPLATE
+
+            else -> "mods.toml" to MinecraftTemplates.NEOFORGE_MODS_TOML_TEMPLATE
+        }
 
         assets.addTemplates(
             project,
             "src/main/java/${mainClass.replace('.', '/')}.java" to mainClassTemplate,
             "src/main/resources/pack.mcmeta" to MinecraftTemplates.NEOFORGE_PACK_MCMETA_TEMPLATE,
-            "src/main/resources/META-INF/mods.toml" to MinecraftTemplates.NEOFORGE_MODS_TOML_TEMPLATE,
+            "src/main/resources/META-INF/$modManifestName" to modManifestTemplate,
         )
+
+        val configClassTemplate = when {
+            mcVersion >= MinecraftVersions.MC1_21 -> MinecraftTemplates.NEOFORGE_1_21_CONFIG_TEMPLATE
+            mcVersion >= MinecraftVersions.MC1_20_5 -> MinecraftTemplates.NEOFORGE_1_20_5_CONFIG_TEMPLATE
+            else -> MinecraftTemplates.NEOFORGE_CONFIG_TEMPLATE
+        }
 
         val configPath = if (mainPackageName != null) {
             "src/main/java/${mainPackageName.replace('.', '/')}/Config.java"
         } else {
             "src/main/java/Config.java"
         }
-        assets.addTemplates(project, configPath to MinecraftTemplates.NEOFORGE_CONFIG_TEMPLATE)
+        assets.addTemplates(project, configPath to configClassTemplate)
 
         assets.addLicense(project)
     }

@@ -87,7 +87,9 @@ class MinecraftTemplates : FileTemplateGroupDescriptorFactory {
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_19_MAIN_CLASS_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_19_3_MAIN_CLASS_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_20_MAIN_CLASS_TEMPLATE))
+            forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_20_6_MAIN_CLASS_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_20_CONFIG_TEMPLATE))
+            forgeGroup.addTemplate(FileTemplateDescriptor(FG3_1_21_CONFIG_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_BUILD_GRADLE_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_GRADLE_PROPERTIES_TEMPLATE))
             forgeGroup.addTemplate(FileTemplateDescriptor(FG3_SETTINGS_GRADLE_TEMPLATE))
@@ -214,7 +216,9 @@ class MinecraftTemplates : FileTemplateGroupDescriptorFactory {
         const val FG3_1_19_MAIN_CLASS_TEMPLATE = "Forge (1.19+) Main Class.java"
         const val FG3_1_19_3_MAIN_CLASS_TEMPLATE = "Forge (1.19.3+) Main Class.java"
         const val FG3_1_20_MAIN_CLASS_TEMPLATE = "Forge (1.20+) Main Class.java"
+        const val FG3_1_20_6_MAIN_CLASS_TEMPLATE = "Forge (1.20.6+) Main Class.java"
         const val FG3_1_20_CONFIG_TEMPLATE = "Forge (1.20+) Config.java"
+        const val FG3_1_21_CONFIG_TEMPLATE = "Forge (1.21+) Config.java"
         const val FG3_BUILD_GRADLE_TEMPLATE = "Forge (1.13+) build.gradle"
         const val FG3_GRADLE_PROPERTIES_TEMPLATE = "Forge (1.13+) gradle.properties"
         const val FG3_SETTINGS_GRADLE_TEMPLATE = "Forge (1.13+) settings.gradle"
@@ -275,7 +279,14 @@ class MinecraftTemplates : FileTemplateGroupDescriptorFactory {
         const val NEOFORGE_GRADLE_PROPERTIES_TEMPLATE = "NeoForge gradle.properties"
         const val NEOFORGE_SETTINGS_GRADLE_TEMPLATE = "NeoForge settings.gradle"
         const val NEOFORGE_MODS_TOML_TEMPLATE = "NeoForge mods.toml"
+        const val NEOFORGE_NEOFORGE_MODS_TOML_TEMPLATE = "NeoForge neoforge.mods.toml"
         const val NEOFORGE_PACK_MCMETA_TEMPLATE = "NeoForge pack.mcmeta"
+
+        const val NEOFORGE_1_20_5_MAIN_CLASS_TEMPLATE = "NeoForge (1.20.5) Main Class.java"
+        const val NEOFORGE_1_20_5_CONFIG_TEMPLATE = "NeoForge (1.20.5) Config.java"
+        const val NEOFORGE_1_20_5_BUILD_GRADLE_TEMPLATE = "NeoForge (1.20.5) build.gradle"
+
+        const val NEOFORGE_1_21_CONFIG_TEMPLATE = "NeoForge (1.21) Config.java"
 
         const val NEOFORGE_BLOCK_TEMPLATE = "NeoForgeBlock.java"
         const val NEOFORGE_ITEM_TEMPLATE = "NeoForgeItem.java"

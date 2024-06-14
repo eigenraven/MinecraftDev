@@ -54,19 +54,25 @@ import org.objectweb.asm.tree.MethodNode
 
 abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
     override fun resolveTarget(annotation: PsiAnnotation, targetClass: ClassNode): List<MixinTargetMember> {
-        val targetClassMethods = targetClass.methods ?: return emptyList()
-
         val methodAttr = annotation.findAttributeValue("method")
         val method = methodAttr?.computeStringArray() ?: emptyList()
         val desc = annotation.findAttributeValue("desc")?.findAnnotations() ?: emptyList()
         val selectors = method.mapNotNull { parseMixinSelector(it, methodAttr!!) } +
             desc.mapNotNull { DescSelectorParser.descSelectorFromAnnotation(it) }
 
-        return targetClassMethods.mapNotNull { targetMethod ->
-            if (selectors.any { it.matchMethod(targetMethod, targetClass) }) {
-                MethodTargetMember(targetClass, targetMethod)
-            } else {
-                null
+        val targetClassMethods = selectors.associateWith { selector ->
+            val actualTarget = selector.getCustomOwner(targetClass)
+            (actualTarget to actualTarget.methods)
+        }
+
+        return targetClassMethods.mapNotNull { (selector, pair) ->
+            val (clazz, methods) = pair
+            methods.firstNotNullOfOrNull { method ->
+                if (selector.matchMethod(method, clazz)) {
+                    MethodTargetMember(clazz, method)
+                } else {
+                    null
+                }
             }
         }
     }
@@ -99,7 +105,7 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
     override fun resolveForNavigation(annotation: PsiAnnotation, targetClass: ClassNode): List<PsiElement> {
         return resolveTarget(annotation, targetClass).flatMap { targetMember ->
             val targetMethod = targetMember as? MethodTargetMember ?: return@flatMap emptyList()
-            resolveForNavigation(annotation, targetClass, targetMethod.classAndMethod.method)
+            resolveForNavigation(annotation, targetMethod.classAndMethod.clazz, targetMethod.classAndMethod.method)
         }
     }
 

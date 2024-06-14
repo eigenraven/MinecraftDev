@@ -142,6 +142,7 @@
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.ModifyExpressionValue" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.ModifyExpressionValueHandler" />
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.ModifyReceiver" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.ModifyReceiverHandler" />
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.ModifyReturnValue" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.ModifyReturnValueHandler" />
+        <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.WrapMethodHandler" />
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.WrapOperationHandler" />
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.WrapWithCondition" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.WrapWithConditionHandler" />
         <mixinAnnotationHandler annotation="com.llamalad7.mixinextras.injector.v2.WrapWithCondition" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.WrapWithConditionHandler" />

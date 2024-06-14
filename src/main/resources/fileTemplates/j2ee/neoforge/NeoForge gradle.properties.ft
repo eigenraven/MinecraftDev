@@ -16,7 +16,7 @@ neo_version=${NEOFORGE_VERSION}
 # The Neo version range can use any version of Neo as bounds
 neo_version_range=[${NEOFORGE_SPEC_VERSION},)
 # The loader version range can only use the major version of FML as bounds
-loader_version_range=[2,)
+loader_version_range=[${LOADER_VERSION},)
 
 #if (${PARCHMENT_VERSION})
 neogradle.subsystems.parchment.minecraftVersion=${PARCHMENT_MC_VERSION}

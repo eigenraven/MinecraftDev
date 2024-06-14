@@ -38,6 +38,7 @@ object MixinConstants {
         const val CONSTANT_CONDITION = "org.spongepowered.asm.mixin.injection.Constant.Condition"
         const val INJECTION_POINT = "org.spongepowered.asm.mixin.injection.InjectionPoint"
         const val SELECTOR = "org.spongepowered.asm.mixin.injection.InjectionPoint.Selector"
+        const val TARGET_SELECTOR = "org.spongepowered.asm.mixin.injection.selectors.TargetSelector"
         const val MIXIN_AGENT = "org.spongepowered.tools.agent.MixinAgent"
         const val MIXIN_CONFIG = "org.spongepowered.asm.mixin.transformer.MixinConfig"
         const val MIXIN_PLUGIN = "org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin"
@@ -85,6 +86,7 @@ object MixinConstants {
     object MixinExtras {
         const val OPERATION = "com.llamalad7.mixinextras.injector.wrapoperation.Operation"
         const val WRAP_OPERATION = "com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation"
+        const val WRAP_METHOD = "com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod"
         const val LOCAL = "com.llamalad7.mixinextras.sugar.Local"
         const val LOCAL_REF_PACKAGE = "com.llamalad7.mixinextras.sugar.ref."
 

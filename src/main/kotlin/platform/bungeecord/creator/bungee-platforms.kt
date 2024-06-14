@@ -28,6 +28,8 @@ import com.demonwav.mcdev.util.SemanticVersion
 class BungeeMainPlatformStep(parent: BungeePlatformStep) : AbstractBungeePlatformStep(parent, PlatformType.BUNGEECORD) {
     override fun getRepositories(mcVersion: SemanticVersion) = listOf(
         BuildRepository("sonatype", "https://oss.sonatype.org/content/groups/public/"),
+        // Seems to be required since 1.21
+        BuildRepository("Minecraft Libraries", "https://libraries.minecraft.net/"),
     )
 
     override fun getDependencies(mcVersion: SemanticVersion) = listOf(

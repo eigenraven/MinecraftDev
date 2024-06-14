@@ -61,7 +61,9 @@ class WrongOperationParametersInspection : MixinInspection() {
                 PsiField::class.java
             ) ?: return
 
-            if (!containingMethod.hasAnnotation(MixinConstants.MixinExtras.WRAP_OPERATION)) {
+            if (!containingMethod.hasAnnotation(MixinConstants.MixinExtras.WRAP_OPERATION) &&
+                !containingMethod.hasAnnotation(MixinConstants.MixinExtras.WRAP_METHOD)
+            ) {
                 return
             }
 

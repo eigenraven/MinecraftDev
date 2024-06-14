@@ -27,6 +27,7 @@ import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.INVOKER
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.MIXIN
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Classes.CALLBACK_INFO
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Classes.CALLBACK_INFO_RETURNABLE
+import com.demonwav.mcdev.platform.mixin.util.MixinConstants.MixinExtras.OPERATION
 import com.demonwav.mcdev.util.cached
 import com.demonwav.mcdev.util.computeStringArray
 import com.demonwav.mcdev.util.findModule
@@ -152,6 +153,18 @@ fun callbackInfoReturnableType(project: Project, context: PsiElement, returnType
 
     return JavaPsiFacade.getElementFactory(project)
         .createTypeFromText("$CALLBACK_INFO_RETURNABLE<${boxedType.canonicalText}>", context)
+}
+
+fun mixinExtrasOperationType(context: PsiElement, type: PsiType): PsiType? {
+    val project = context.project
+    val boxedType = if (type is PsiPrimitiveType) {
+        type.getBoxedType(context) ?: return null
+    } else {
+        type
+    }
+
+    return JavaPsiFacade.getElementFactory(project)
+        .createTypeFromText("$OPERATION<${boxedType.canonicalText}>", context)
 }
 
 fun isAssignable(left: PsiType, right: PsiType, allowPrimitiveConversion: Boolean = true): Boolean {

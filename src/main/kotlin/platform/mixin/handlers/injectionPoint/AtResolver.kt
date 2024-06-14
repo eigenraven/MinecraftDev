@@ -20,6 +20,7 @@
 
 package com.demonwav.mcdev.platform.mixin.handlers.injectionPoint
 
+import com.demonwav.mcdev.platform.mixin.reference.MixinSelector
 import com.demonwav.mcdev.platform.mixin.reference.isMiscDynamicSelector
 import com.demonwav.mcdev.platform.mixin.reference.parseMixinSelector
 import com.demonwav.mcdev.platform.mixin.reference.target.TargetReference
@@ -152,7 +153,7 @@ class AtResolver(
         val collectVisitor = injectionPoint.createCollectVisitor(
             at,
             target,
-            targetClass,
+            getTargetClass(target),
             CollectVisitor.Mode.MATCH_FIRST,
         )
         if (collectVisitor == null) {
@@ -181,7 +182,7 @@ class AtResolver(
         val targetAttr = at.findAttributeValue("target")
         val target = targetAttr?.let { parseMixinSelector(it) }
 
-        val collectVisitor = injectionPoint.createCollectVisitor(at, target, targetClass, mode)
+        val collectVisitor = injectionPoint.createCollectVisitor(at, target, getTargetClass(target), mode)
             ?: return InsnResolutionInfo.Failure()
         collectVisitor.visit(targetMethod)
         val result = collectVisitor.result
@@ -201,7 +202,7 @@ class AtResolver(
 
         // Then attempt to find the corresponding source elements using the navigation visitor
         val targetElement = targetMethod.findSourceElement(
-            targetClass,
+            getTargetClass(target),
             at.project,
             GlobalSearchScope.allScope(at.project),
             canDecompile = true,
@@ -223,15 +224,22 @@ class AtResolver(
 
         // Collect all possible targets
         fun <T : PsiElement> doCollectVariants(injectionPoint: InjectionPoint<T>): List<Any> {
-            val visitor = injectionPoint.createCollectVisitor(at, target, targetClass, CollectVisitor.Mode.COMPLETION)
+            val visitor = injectionPoint.createCollectVisitor(
+                at, target, getTargetClass(target),
+                CollectVisitor.Mode.COMPLETION
+            )
                 ?: return emptyList()
             visitor.visit(targetMethod)
             return visitor.result
                 .mapNotNull { result ->
-                    injectionPoint.createLookup(targetClass, result)?.let { completionHandler(it) }
+                    injectionPoint.createLookup(getTargetClass(target), result)?.let { completionHandler(it) }
                 }
         }
         return doCollectVariants(injectionPoint)
+    }
+
+    private fun getTargetClass(selector: MixinSelector?): ClassNode {
+        return selector?.getCustomOwner(targetClass) ?: targetClass
     }
 }
 

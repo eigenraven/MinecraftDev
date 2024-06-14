@@ -36,6 +36,7 @@ import com.demonwav.mcdev.creator.step.UpdateUrlStep
 import com.demonwav.mcdev.creator.step.UseMixinsStep
 import com.demonwav.mcdev.creator.step.WebsiteStep
 import com.demonwav.mcdev.platform.neoforge.version.NeoForgeVersion
+import com.demonwav.mcdev.platform.neoforge.version.NeoGradleVersion
 import com.demonwav.mcdev.util.MinecraftVersions
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.asyncIO
@@ -47,25 +48,31 @@ import kotlinx.coroutines.coroutineScope
 
 private val minSupportedMcVersion = MinecraftVersions.MC1_20_2
 
-class NeoForgePlatformStep(parent: ModPlatformStep) : AbstractLatentStep<NeoForgeVersion>(parent) {
+class NeoForgePlatformStep(parent: ModPlatformStep) :
+    AbstractLatentStep<Pair<NeoForgeVersion, NeoGradleVersion>>(parent) {
     override val description = "fetch NeoForge versions"
 
     override suspend fun computeData() = coroutineScope {
-        asyncIO { NeoForgeVersion.downloadData() }.await()
+        val neoforgeJob = asyncIO { NeoForgeVersion.downloadData() }
+        val neogradleJob = asyncIO { NeoGradleVersion.downloadData() }
+        val neoforge = neoforgeJob.await() ?: return@coroutineScope null
+        val neogradle = neogradleJob.await() ?: return@coroutineScope null
+        neoforge to neogradle
     }
 
-    override fun createStep(data: NeoForgeVersion) = NeoForgeVersionChainStep(this, data)
-        .nextStep(::ForgeStyleModIdStep)
-        .nextStep(::ModNameStep)
-        .nextStep(::MainClassStep)
-        .nextStep(::UseMixinsStep)
-        .nextStep(::LicenseStep)
-        .nextStep(::NeoForgeOptionalSettingsStep)
-        .nextStep(::NeoForgeBuildSystemStep)
-        .nextStep(::NeoForgeProjectFilesStep)
-        .nextStep(::NeoForgeMixinsJsonStep)
-        .nextStep(::NeoForgePostBuildSystemStep)
-        .nextStep(::NeoForgeReformatPackDescriptorStep)
+    override fun createStep(data: Pair<NeoForgeVersion, NeoGradleVersion>): NewProjectWizardStep =
+        NeoForgeVersionChainStep(this, data.first, data.second)
+            .nextStep(::ForgeStyleModIdStep)
+            .nextStep(::ModNameStep)
+            .nextStep(::MainClassStep)
+            .nextStep(::UseMixinsStep)
+            .nextStep(::LicenseStep)
+            .nextStep(::NeoForgeOptionalSettingsStep)
+            .nextStep(::NeoForgeBuildSystemStep)
+            .nextStep(::NeoForgeProjectFilesStep)
+            .nextStep(::NeoForgeMixinsJsonStep)
+            .nextStep(::NeoForgePostBuildSystemStep)
+            .nextStep(::NeoForgeReformatPackDescriptorStep)
 
     class Factory : ModPlatformStep.Factory {
         override val name = "NeoForge"
@@ -76,13 +83,17 @@ class NeoForgePlatformStep(parent: ModPlatformStep) : AbstractLatentStep<NeoForg
 class NeoForgeVersionChainStep(
     parent: NewProjectWizardStep,
     private val neoforgeVersionData: NeoForgeVersion,
-) : AbstractMcVersionChainStep(parent, "NeoForge Version:") {
+    private val neogradleVersionData: NeoGradleVersion,
+) : AbstractMcVersionChainStep(parent, "NeoForge Version:", "NeoGradle Version:") {
     companion object {
         private const val NEOFORGE_VERSION = 1
+        private const val NEOGRADLE_VERSION = 2
 
         val MC_VERSION_KEY = Key.create<SemanticVersion>("${NeoForgeVersionChainStep::class.java}.mcVersion")
         val NEOFORGE_VERSION_KEY =
             Key.create<SemanticVersion>("${NeoForgeVersionChainStep::class.java}.neoforgeVersion")
+        val NEOGRADLE_VERSION_KEY =
+            Key.create<SemanticVersion>("${NeoForgeVersionChainStep::class.java}.neogradleVersion")
     }
 
     override fun getAvailableVersions(versionsAbove: List<Comparable<*>>): List<Comparable<*>> {
@@ -90,6 +101,8 @@ class NeoForgeVersionChainStep(
             MINECRAFT_VERSION -> neoforgeVersionData.sortedMcVersions.filter { it >= minSupportedMcVersion }
             NEOFORGE_VERSION ->
                 neoforgeVersionData.getNeoForgeVersions(versionsAbove[MINECRAFT_VERSION] as SemanticVersion)
+
+            NEOGRADLE_VERSION -> neogradleVersionData.versions
             else -> throw IncorrectOperationException()
         }
     }
@@ -98,6 +111,7 @@ class NeoForgeVersionChainStep(
         super.setupProject(project)
         data.putUserData(MC_VERSION_KEY, getVersion(MINECRAFT_VERSION) as SemanticVersion)
         data.putUserData(NEOFORGE_VERSION_KEY, getVersion(NEOFORGE_VERSION) as SemanticVersion)
+        data.putUserData(NEOGRADLE_VERSION_KEY, getVersion(NEOGRADLE_VERSION) as SemanticVersion)
     }
 }
 

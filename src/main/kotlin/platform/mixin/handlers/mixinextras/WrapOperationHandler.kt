@@ -21,12 +21,9 @@
 package com.demonwav.mcdev.platform.mixin.handlers.mixinextras
 
 import com.demonwav.mcdev.platform.mixin.inspection.injector.ParameterGroup
-import com.demonwav.mcdev.platform.mixin.util.MixinConstants.MixinExtras.OPERATION
+import com.demonwav.mcdev.platform.mixin.util.mixinExtrasOperationType
 import com.demonwav.mcdev.util.Parameter
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
@@ -50,21 +47,9 @@ class WrapOperationHandler : MixinExtrasInjectorAnnotationHandler() {
     ): Pair<ParameterGroup, PsiType>? {
         val params = getPsiParameters(insn, targetClass, annotation) ?: return null
         val returnType = getPsiReturnType(insn, annotation) ?: return null
-        val operationType = getOperationType(annotation, returnType) ?: return null
+        val operationType = mixinExtrasOperationType(annotation, returnType) ?: return null
         return ParameterGroup(
             params + Parameter("original", operationType)
         ) to returnType
-    }
-
-    private fun getOperationType(context: PsiElement, type: PsiType): PsiType? {
-        val project = context.project
-        val boxedType = if (type is PsiPrimitiveType) {
-            type.getBoxedType(context) ?: return null
-        } else {
-            type
-        }
-
-        return JavaPsiFacade.getElementFactory(project)
-            .createTypeFromText("$OPERATION<${boxedType.canonicalText}>", context)
     }
 }
