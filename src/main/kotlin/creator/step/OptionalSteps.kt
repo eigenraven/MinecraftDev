@@ -22,7 +22,6 @@ package com.demonwav.mcdev.creator.step
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.creator.updateWhenChanged
-import com.intellij.ide.users.LocalUserSettings
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
 import com.intellij.ide.wizard.NewProjectWizardBaseData.Companion.baseData
 import com.intellij.ide.wizard.NewProjectWizardStep
@@ -33,6 +32,7 @@ import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.columns
+import com.intellij.util.SystemProperties
 
 abstract class AbstractOptionalStringStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
     protected abstract val label: String
@@ -148,7 +148,7 @@ class RepositoryStep(parent: NewProjectWizardStep) : AbstractOptionalStringBased
 
     init {
         if (format.isEmpty()) {
-            format = "https://github.com/${LocalUserSettings.userName}/$PROJECT_NAME_PLACEHOLDER"
+            format = "https://github.com/${SystemProperties.getUserName()}/$PROJECT_NAME_PLACEHOLDER"
         }
     }
 
@@ -167,7 +167,7 @@ class IssueTrackerStep(parent: NewProjectWizardStep) : AbstractOptionalStringBas
 
     init {
         if (format.isEmpty()) {
-            format = "https://github.com/${LocalUserSettings.userName}/$PROJECT_NAME_PLACEHOLDER/issues"
+            format = "https://github.com/${SystemProperties.getUserName()}/$PROJECT_NAME_PLACEHOLDER/issues"
         }
     }
 

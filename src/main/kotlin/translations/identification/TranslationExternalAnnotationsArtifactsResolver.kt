@@ -43,7 +43,7 @@ import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.toVirtualFileUrl
 import com.intellij.platform.workspace.jps.entities.LibraryRoot
 import com.intellij.platform.workspace.jps.entities.LibraryRootTypeId
-import com.intellij.platform.workspace.jps.entities.modifyEntity
+import com.intellij.platform.workspace.jps.entities.modifyLibraryEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridge
 import com.intellij.workspaceModel.ide.impl.legacyBridge.library.ProjectLibraryTableBridgeImpl.Companion.findLibraryEntity
@@ -93,7 +93,7 @@ class TranslationExternalAnnotationsArtifactsResolver : ExternalAnnotationsArtif
             return true
         }
 
-        diff.modifyEntity(libraryEntity) {
+        diff.modifyLibraryEntity(libraryEntity) {
             roots += LibraryRoot(newUrl, annotationsRootType)
         }
         return true
