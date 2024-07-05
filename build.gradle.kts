@@ -34,11 +34,13 @@ plugins {
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij.platform") version "2.0.0-beta6"
+    id("org.jetbrains.intellij.platform") version "2.0.0-beta8"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 }
 
+val ideaVersion: String by project
+val ideaVersionNoEapSnapshot = ideaVersion.removeSuffix("-EAP-SNAPSHOT")
 val ideaVersionName: String by project
 val coreVersion: String by project
 
@@ -93,6 +95,17 @@ repositories {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        // For some reason dependency versions do not include the EAP-SNAPSHOT suffix anymore since beta7
+        // This works around the issue for now
+        // TODO remove when no longer needed
+        if (requested.version == ideaVersionNoEapSnapshot) {
+            useVersion(ideaVersion)
+        }
+    }
+}
+
 dependencies {
     // Add tools.jar for the JDI API
     implementation(files(Jvm.current().toolsJar))
@@ -126,7 +139,7 @@ dependencies {
         bundledPlugin("com.intellij.gradle")
         bundledPlugin("org.intellij.groovy")
         // For some reason the Kotlin plugin can't be resolved...
-//        bundledPlugin("org.jetbrains.kotlin")
+        bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("ByteCodeViewer")
         bundledPlugin("com.intellij.properties")
         bundledPlugin("org.toml.lang")
@@ -136,7 +149,7 @@ dependencies {
 
         instrumentationTools()
 
-        testFramework(TestFrameworkType.Platform.JUnit5)
+        testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Plugin.Java)
 
         pluginVerifier()

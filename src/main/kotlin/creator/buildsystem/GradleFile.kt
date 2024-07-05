@@ -20,20 +20,20 @@
 
 package com.demonwav.mcdev.creator.buildsystem
 
-// import com.demonwav.mcdev.util.childrenOfType
+import com.demonwav.mcdev.util.childrenOfType
 import com.demonwav.mcdev.util.mapFirstNotNull
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.ApiStatus.Internal
-// import org.jetbrains.kotlin.psi.KtBinaryExpression
-// import org.jetbrains.kotlin.psi.KtBlockExpression
-// import org.jetbrains.kotlin.psi.KtCallExpression
-// import org.jetbrains.kotlin.psi.KtFile
-// import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-// import org.jetbrains.kotlin.psi.KtPsiFactory
-// import org.jetbrains.kotlin.psi.KtScriptInitializer
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock
@@ -136,88 +136,88 @@ class GroovyGradleFile(override val psi: GroovyFile) : GradleFile {
     }
 }
 
-// class KotlinGradleFile(override val psi: KtFile) : GradleFile {
-//     override fun addRepositories(project: Project, repositories: List<BuildRepository>) {
-//         val script = psi.script?.blockExpression ?: return
-//         val reposBlock = findOrCreateKotlinBlock(project, script, "repositories")
-//         val elementFactory = KtPsiFactory(project)
-//         for (repo in repositories) {
-//             if (BuildSystemType.GRADLE !in repo.buildSystems) {
-//                 continue
-//             }
-//             val mavenBlock = elementFactory.createExpression("maven {\n}") as KtCallExpression
-//             val mavenLambda = mavenBlock.lambdaArguments[0].getLambdaExpression()!!.bodyExpression!!
-//             if (repo.id.isNotBlank()) {
-//                 val idStatement = elementFactory.createAssignment("name = ${makeStringLiteral(repo.id)}")
-//                 mavenLambda.addBefore(idStatement, mavenLambda.rBrace)
-//             }
-//             val urlStatement = elementFactory.createAssignment("url = uri(${makeStringLiteral(repo.url)})")
-//             mavenLambda.addBefore(urlStatement, mavenLambda.rBrace)
-//             reposBlock.addBefore(mavenBlock, reposBlock.rBrace)
-//         }
-//     }
-//
-//     override fun addDependencies(project: Project, dependencies: List<BuildDependency>) {
-//         val script = psi.script?.blockExpression ?: return
-//         val depsBlock = findOrCreateKotlinBlock(project, script, "dependencies")
-//         val elementFactory = KtPsiFactory(project)
-//         for (dep in dependencies) {
-//             val gradleConfig = dep.gradleConfiguration ?: continue
-//             val stmt = elementFactory.createExpression(
-//                 "$gradleConfig(\"${escapeGString(dep.groupId)}:${
-//                 escapeGString(dep.artifactId)
-//                 }:${escapeGString(dep.version)}\")",
-//             )
-//             depsBlock.addBefore(stmt, depsBlock.rBrace)
-//         }
-//     }
-//
-//     override fun addPlugins(project: Project, plugins: List<GradlePlugin>) {
-//         val script = psi.script?.blockExpression ?: return
-//         val pluginsBlock = findOrCreateKotlinBlock(project, script, "plugins", first = true)
-//         val elementFactory = KtPsiFactory(project)
-//         for (plugin in plugins) {
-//             val stmt = elementFactory.createExpression(makePluginStatement(plugin, true))
-//             pluginsBlock.addBefore(stmt, pluginsBlock.rBrace)
-//         }
-//     }
-//
-//     private fun findKotlinBlock(element: KtBlockExpression, name: String): KtBlockExpression? {
-//         return element.childrenOfType<KtScriptInitializer>()
-//             .flatMap { it.childrenOfType<KtCallExpression>() }
-//             .mapFirstNotNull { call ->
-//                 if ((call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == name) {
-//                     call.lambdaArguments.firstOrNull()?.getLambdaExpression()?.bodyExpression
-//                 } else {
-//                     null
-//                 }
-//             }
-//     }
-//
-//     private fun findOrCreateKotlinBlock(
-//         project: Project,
-//         element: KtBlockExpression,
-//         name: String,
-//         first: Boolean = false,
-//     ): KtBlockExpression {
-//         findKotlinBlock(element, name)?.let { return it }
-//         val block = KtPsiFactory(project).createExpression("$name {\n}")
-//         val addedBlock = if (first) {
-//             element.addAfter(block, element.lBrace)
-//         } else {
-//             element.addBefore(block, element.rBrace)
-//         }
-//         return (addedBlock as KtCallExpression).lambdaArguments.first().getLambdaExpression()!!.bodyExpression!!
-//     }
-//
-//     private fun KtPsiFactory.createAssignment(text: String): KtBinaryExpression {
-//         return this.createBlock(text).firstStatement as KtBinaryExpression
-//     }
-//
-//     class Type : GradleFile.Type {
-//         override fun createGradleFile(psiFile: PsiFile) = (psiFile as? KtFile)?.let(::KotlinGradleFile)
-//     }
-// }
+class KotlinGradleFile(override val psi: KtFile) : GradleFile {
+    override fun addRepositories(project: Project, repositories: List<BuildRepository>) {
+        val script = psi.script?.blockExpression ?: return
+        val reposBlock = findOrCreateKotlinBlock(project, script, "repositories")
+        val elementFactory = KtPsiFactory(project)
+        for (repo in repositories) {
+            if (BuildSystemType.GRADLE !in repo.buildSystems) {
+                continue
+            }
+            val mavenBlock = elementFactory.createExpression("maven {\n}") as KtCallExpression
+            val mavenLambda = mavenBlock.lambdaArguments[0].getLambdaExpression()!!.bodyExpression!!
+            if (repo.id.isNotBlank()) {
+                val idStatement = elementFactory.createAssignment("name = ${makeStringLiteral(repo.id)}")
+                mavenLambda.addBefore(idStatement, mavenLambda.rBrace)
+            }
+            val urlStatement = elementFactory.createAssignment("url = uri(${makeStringLiteral(repo.url)})")
+            mavenLambda.addBefore(urlStatement, mavenLambda.rBrace)
+            reposBlock.addBefore(mavenBlock, reposBlock.rBrace)
+        }
+    }
+
+    override fun addDependencies(project: Project, dependencies: List<BuildDependency>) {
+        val script = psi.script?.blockExpression ?: return
+        val depsBlock = findOrCreateKotlinBlock(project, script, "dependencies")
+        val elementFactory = KtPsiFactory(project)
+        for (dep in dependencies) {
+            val gradleConfig = dep.gradleConfiguration ?: continue
+            val stmt = elementFactory.createExpression(
+                "$gradleConfig(\"${escapeGString(dep.groupId)}:${
+                escapeGString(dep.artifactId)
+                }:${escapeGString(dep.version)}\")",
+            )
+            depsBlock.addBefore(stmt, depsBlock.rBrace)
+        }
+    }
+
+    override fun addPlugins(project: Project, plugins: List<GradlePlugin>) {
+        val script = psi.script?.blockExpression ?: return
+        val pluginsBlock = findOrCreateKotlinBlock(project, script, "plugins", first = true)
+        val elementFactory = KtPsiFactory(project)
+        for (plugin in plugins) {
+            val stmt = elementFactory.createExpression(makePluginStatement(plugin, true))
+            pluginsBlock.addBefore(stmt, pluginsBlock.rBrace)
+        }
+    }
+
+    private fun findKotlinBlock(element: KtBlockExpression, name: String): KtBlockExpression? {
+        return element.childrenOfType<KtScriptInitializer>()
+            .flatMap { it.childrenOfType<KtCallExpression>() }
+            .mapFirstNotNull { call ->
+                if ((call.calleeExpression as? KtNameReferenceExpression)?.getReferencedName() == name) {
+                    call.lambdaArguments.firstOrNull()?.getLambdaExpression()?.bodyExpression
+                } else {
+                    null
+                }
+            }
+    }
+
+    private fun findOrCreateKotlinBlock(
+        project: Project,
+        element: KtBlockExpression,
+        name: String,
+        first: Boolean = false,
+    ): KtBlockExpression {
+        findKotlinBlock(element, name)?.let { return it }
+        val block = KtPsiFactory(project).createExpression("$name {\n}")
+        val addedBlock = if (first) {
+            element.addAfter(block, element.lBrace)
+        } else {
+            element.addBefore(block, element.rBrace)
+        }
+        return (addedBlock as KtCallExpression).lambdaArguments.first().getLambdaExpression()!!.bodyExpression!!
+    }
+
+    private fun KtPsiFactory.createAssignment(text: String): KtBinaryExpression {
+        return this.createBlock(text).firstStatement as KtBinaryExpression
+    }
+
+    class Type : GradleFile.Type {
+        override fun createGradleFile(psiFile: PsiFile) = (psiFile as? KtFile)?.let(::KotlinGradleFile)
+    }
+}
 
 private fun makeStringLiteral(str: String): String {
     return "\"${escapeGString(str)}\""
