@@ -247,6 +247,7 @@ intellijPlatform {
     sandboxContainer.set(layout.projectDirectory.dir(".sandbox"))
 
     instrumentCode = false
+    buildSearchableOptions = false
 
     verifyPlugin {
         ides {
@@ -274,14 +275,13 @@ tasks.withType<PublishPluginTask> {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs = listOf("-proc:none")
-    options.release.set(17)
+    options.release.set(21)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-        // K2 causes the following error: https://youtrack.jetbrains.com/issue/KT-52786
-        freeCompilerArgs = listOf(/*"-Xuse-k2", */"-Xjvm-default=all", "-Xjdk-release=17")
+        jvmTarget = "21"
+        freeCompilerArgs = listOf("-Xjvm-default=all")
         kotlinDaemonJvmArguments.add("-Xmx2G")
     }
 }
@@ -452,7 +452,7 @@ tasks.withType<PrepareSandboxTask> {
     }
     from("templates") {
         exclude(".git")
-        into("Minecraft Development/lib/resources/builtin-templates")
+        into("MinecraftDev/lib/resources/builtin-templates")
     }
 }
 
@@ -466,15 +466,4 @@ tasks.runIde {
     // Set these properties to test different languages
     // systemProperty("user.language", "fr")
     // systemProperty("user.country", "FR")
-}
-
-tasks.buildSearchableOptions {
-    // not working atm
-    enabled = false
-}
-
-tasks.verifyPluginProjectConfiguration {
-    // Breaks since IJGP 2.0.0-beta5 :(
-    setDependsOn(emptyList<Any>())
-    enabled = false
 }
