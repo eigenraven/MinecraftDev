@@ -246,6 +246,8 @@ changelog {
 intellijPlatform {
     sandboxContainer.set(layout.projectDirectory.dir(".sandbox"))
 
+    instrumentCode = false
+
     verifyPlugin {
         ides {
             recommended()
@@ -468,14 +470,6 @@ tasks.runIde {
 
 tasks.buildSearchableOptions {
     // not working atm
-    enabled = false
-}
-
-tasks.instrumentCode {
-    enabled = false
-}
-
-tasks.instrumentedJar {
     enabled = false
 }
 

@@ -102,11 +102,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifierList
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageEditorUtil
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
-import com.intellij.psi.util.createSmartPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parents
 import com.intellij.util.PlatformIcons
@@ -1143,7 +1143,7 @@ object MEExpressionCompletionUtil {
         )
 
         val prevCursorPosInLiteral = hostEditor.caretModel.offset - hostElement.textRange.startOffset
-        val hostElementPtr = hostElement.createSmartPointer(project)
+        val hostElementPtr = hostElement.createSmartPointer()
         hostEditor.caretModel.moveToOffset(annotation.textRange.startOffset)
         TemplateManager.getInstance(project).startTemplate(
             hostEditor,

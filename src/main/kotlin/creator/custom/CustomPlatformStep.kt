@@ -46,7 +46,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.observable.util.transform
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -529,7 +528,7 @@ class CustomPlatformStep(
 
     private fun setupTempRootModule(project: Project, projectPath: Path) {
         val modifiableModel = ModuleManager.getInstance(project).getModifiableModel()
-        val module = modifiableModel.newNonPersistentModule("mcdev-temp-root", ModuleTypeId.JAVA_MODULE)
+        val module = modifiableModel.newNonPersistentModule("mcdev-temp-root", "")
         val rootsModel = ModuleRootManager.getInstance(module).modifiableModel
         rootsModel.addContentEntry(projectPath.virtualFileOrError)
         rootsModel.commit()
