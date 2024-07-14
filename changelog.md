@@ -1,5 +1,7 @@
 # Minecraft Development for IntelliJ
 
+## [1.8.0]
+
 This release contains two major features:
 - Support for MixinExtras expressions ([#2274](https://github.com/minecraft-dev/MinecraftDev/pull/2274))
 - A rewritten project creator ([#2304](https://github.com/minecraft-dev/MinecraftDev/pull/2304))
