@@ -31,6 +31,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
@@ -131,4 +132,6 @@ class ModifyConstantHandler : InjectorAnnotationHandler() {
     override fun isInsnAllowed(insn: AbstractInsnNode): Boolean {
         return insn.opcode in allowedOpcodes
     }
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.MODIFY_CONSTANT
 }

@@ -46,6 +46,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiEllipsisType
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiModificationTracker
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import java.util.concurrent.ConcurrentHashMap
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AbstractInsnNode
@@ -173,6 +174,8 @@ abstract class InjectorAnnotationHandler : MixinAnnotationHandler {
 
     override val isEntryPoint = true
 
+    abstract val mixinExtrasExpressionContextType: ExpressionContext.Type
+
     data class InsnResult(val method: ClassAndMethodNode, val result: CollectVisitor.Result<*>)
 
     companion object {
@@ -217,4 +220,6 @@ object DefaultInjectorAnnotationHandler : InjectorAnnotationHandler() {
     ) = null
 
     override val isSoft = true
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.CUSTOM
 }

@@ -37,6 +37,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiQualifiedReference
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
@@ -131,4 +132,6 @@ class InjectAnnotationHandler : InjectorAnnotationHandler() {
     }
 
     override val allowCoerce = true
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.INJECT
 }

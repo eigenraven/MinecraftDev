@@ -54,7 +54,8 @@ class MixinClassCastInspectionSuppressor : InspectionSuppressor {
         // check instanceof
         if (element is PsiInstanceOfExpression) {
             val castType = element.checkType?.type
-                ?: (element.pattern as? PsiTypeTestPattern)?.checkType?.type
+                ?: (element.pattern as? PsiTypeTestPattern)
+                    ?.checkType?.type
                 ?: return false
             var operand = PsiUtil.skipParenthesizedExprDown(element.operand) ?: return false
             while (operand is PsiTypeCastExpression) {

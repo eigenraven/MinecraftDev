@@ -22,12 +22,15 @@ package com.demonwav.mcdev.platform.fabric.inspection
 
 import com.demonwav.mcdev.platform.fabric.reference.EntryPointReference
 import com.demonwav.mcdev.platform.fabric.util.FabricConstants
+import com.demonwav.mcdev.util.equivalentTo
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.json.psi.JsonArray
 import com.intellij.json.psi.JsonElementVisitor
+import com.intellij.json.psi.JsonLiteral
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.psi.JavaPsiFacade
@@ -79,8 +82,7 @@ class FabricEntrypointsInspection : LocalInspectionTool() {
                 val element = resolved.singleOrNull()?.element
                 when {
                     element is PsiClass && !literal.text.contains("::") -> {
-                        val propertyKey = literal.parentOfType<JsonProperty>()?.name
-                        val expectedType = propertyKey?.let { FabricConstants.ENTRYPOINT_BY_TYPE[it] }
+                        val (propertyKey, expectedType) = findEntrypointKeyAndType(literal)
                         if (propertyKey != null && expectedType != null &&
                             !isEntrypointOfCorrectType(element, propertyKey)
                         ) {
@@ -111,21 +113,43 @@ class FabricEntrypointsInspection : LocalInspectionTool() {
                                 reference.rangeInElement,
                             )
                         }
-                    }
 
-                    element is PsiField -> {
-                        if (!element.hasModifierProperty(PsiModifier.STATIC)) {
+                        if (!element.hasModifierProperty(PsiModifier.PUBLIC)) {
                             holder.registerProblem(
                                 literal,
-                                "Entrypoint field must be static",
+                                "Entrypoint method must be public",
                                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
                                 reference.rangeInElement,
                             )
                         }
 
-                        val propertyKey = literal.parentOfType<JsonProperty>()?.name
+                        if (!element.hasModifierProperty(PsiModifier.STATIC)) {
+                            val clazz = element.containingClass
+                            if (clazz != null && clazz.constructors.isNotEmpty() &&
+                                clazz.constructors.find { !it.hasParameters() } == null
+                            ) {
+                                holder.registerProblem(
+                                    literal,
+                                    "Entrypoint instance method class must have an empty constructor",
+                                    ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+                                    reference.rangeInElement,
+                                )
+                            }
+                        }
+                    }
+
+                    element is PsiField -> {
+                        if (!element.hasModifierProperty(PsiModifier.PUBLIC)) {
+                            holder.registerProblem(
+                                literal,
+                                "Entrypoint field must be public",
+                                ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+                                reference.rangeInElement,
+                            )
+                        }
+
+                        val (propertyKey, expectedType) = findEntrypointKeyAndType(literal)
                         val fieldTypeClass = (element.type as? PsiClassType)?.resolve()
-                        val expectedType = propertyKey?.let { FabricConstants.ENTRYPOINT_BY_TYPE[it] }
                         if (propertyKey != null && fieldTypeClass != null && expectedType != null &&
                             !isEntrypointOfCorrectType(fieldTypeClass, propertyKey)
                         ) {
@@ -141,11 +165,21 @@ class FabricEntrypointsInspection : LocalInspectionTool() {
             }
         }
 
+        private fun findEntrypointKeyAndType(literal: JsonLiteral): Pair<String?, String?> {
+            val propertyKey = when (val parent = literal.parent) {
+                is JsonArray -> (parent.parent as? JsonProperty)?.name
+                is JsonProperty -> parent.parentOfType<JsonProperty>()?.name
+                else -> null
+            }
+            val expectedType = propertyKey?.let { FabricConstants.ENTRYPOINT_BY_TYPE[it] }
+            return propertyKey to expectedType
+        }
+
         private fun isEntrypointOfCorrectType(element: PsiClass, type: String): Boolean {
             val entrypointClass = FabricConstants.ENTRYPOINT_BY_TYPE[type]
                 ?: return false
             val clazz = JavaPsiFacade.getInstance(element.project).findClass(entrypointClass, element.resolveScope)
-            return clazz != null && element.isInheritor(clazz, true)
+            return clazz != null && (element.equivalentTo(clazz) || element.isInheritor(clazz, true))
         }
     }
 }

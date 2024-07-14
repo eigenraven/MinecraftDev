@@ -21,14 +21,12 @@
 package com.demonwav.mcdev.util
 
 import com.demonwav.mcdev.platform.mixin.reference.MixinSelector
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import java.io.Serializable
-import java.lang.reflect.Type
+import org.objectweb.asm.Type
 
 /**
  * Represents a reference to a class member (a method or a field). It may
@@ -65,6 +63,19 @@ data class MemberReference(
     override val fieldDescriptor = descriptor?.takeUnless { it.contains("(") }
     override val displayName = name
 
+    val presentableText: String get() = buildString {
+        if (owner != null) {
+            append(owner.substringAfterLast('.'))
+            append('.')
+        }
+        append(name)
+        if (descriptor != null && descriptor.startsWith("(")) {
+            append('(')
+            append(Type.getArgumentTypes(descriptor).joinToString { it.className.substringAfterLast('.') })
+            append(')')
+        }
+    }
+
     override fun canEverMatch(name: String): Boolean {
         return matchAllNames || this.name == name
     }
@@ -88,13 +99,71 @@ data class MemberReference(
             (this.descriptor == null || this.descriptor == desc)
     }
 
-    object Deserializer : JsonDeserializer<MemberReference> {
-        override fun deserialize(json: JsonElement, type: Type, ctx: JsonDeserializationContext): MemberReference {
-            val ref = json.asString
-            val className = ref.substringBefore('#')
-            val methodName = ref.substring(className.length + 1, ref.indexOf("("))
-            val methodDesc = ref.substring(className.length + methodName.length + 1)
-            return MemberReference(methodName, methodDesc, className)
+    companion object {
+        fun parse(value: String): MemberReference? {
+            val reference = value.replace(" ", "")
+            val owner: String?
+
+            var pos = reference.lastIndexOf('.')
+            if (pos != -1) {
+                // Everything before the dot is the qualifier/owner
+                owner = reference.substring(0, pos).replace('/', '.')
+            } else {
+                pos = reference.indexOf(';')
+                if (pos != -1 && reference.startsWith('L')) {
+                    val internalOwner = reference.substring(1, pos)
+                    if (!StringUtil.isJavaIdentifier(internalOwner.replace('/', '_'))) {
+                        // Invalid: Qualifier should only contain slashes
+                        return null
+                    }
+
+                    owner = internalOwner.replace('/', '.')
+
+                    // if owner is all there is to the selector, match anything with the owner
+                    if (pos == reference.length - 1) {
+                        return MemberReference("", null, owner, matchAllNames = true, matchAllDescs = true)
+                    }
+                } else {
+                    // No owner/qualifier specified
+                    pos = -1
+                    owner = null
+                }
+            }
+
+            val descriptor: String?
+            val name: String
+            val matchAllNames = reference.getOrNull(pos + 1) == '*'
+            val matchAllDescs: Boolean
+
+            // Find descriptor separator
+            val methodDescPos = reference.indexOf('(', pos + 1)
+            if (methodDescPos != -1) {
+                // Method descriptor
+                descriptor = reference.substring(methodDescPos)
+                name = reference.substring(pos + 1, methodDescPos)
+                matchAllDescs = false
+            } else {
+                val fieldDescPos = reference.indexOf(':', pos + 1)
+                if (fieldDescPos != -1) {
+                    descriptor = reference.substring(fieldDescPos + 1)
+                    name = reference.substring(pos + 1, fieldDescPos)
+                    matchAllDescs = false
+                } else {
+                    descriptor = null
+                    matchAllDescs = reference.endsWith('*')
+                    name = if (matchAllDescs) {
+                        reference.substring(pos + 1, reference.lastIndex)
+                    } else {
+                        reference.substring(pos + 1)
+                    }
+                }
+            }
+
+            if (!matchAllNames && !StringUtil.isJavaIdentifier(name) && name != "<init>" && name != "<clinit>") {
+                return null
+            }
+
+            return MemberReference(if (matchAllNames) "*" else name, descriptor, owner, matchAllNames, matchAllDescs)
         }
     }
 }

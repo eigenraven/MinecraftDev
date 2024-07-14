@@ -32,6 +32,7 @@ import com.demonwav.mcdev.util.findQualifiedClass
 import com.demonwav.mcdev.util.fullQualifiedName
 import com.demonwav.mcdev.util.hasSyntheticMethod
 import com.demonwav.mcdev.util.isErasureEquivalentTo
+import com.demonwav.mcdev.util.lockedCached
 import com.demonwav.mcdev.util.loggerForTopLevel
 import com.demonwav.mcdev.util.mapToArray
 import com.demonwav.mcdev.util.realName
@@ -42,6 +43,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.CompilerModuleExtension
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
@@ -67,19 +69,27 @@ import com.intellij.psi.PsiModifierList
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.compiled.ClsElementImpl
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.PsiUtil
 import com.intellij.refactoring.util.LambdaRefactoringUtil
 import com.intellij.util.CommonJavaRefactoringUtil
+import com.llamalad7.mixinextras.expression.impl.utils.ExpressionASMUtils
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.tree.AbstractInsnNode
+import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.FieldNode
@@ -89,6 +99,10 @@ import org.objectweb.asm.tree.InvokeDynamicInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 import org.objectweb.asm.tree.VarInsnNode
+import org.objectweb.asm.util.Textifier
+import org.objectweb.asm.util.TraceAnnotationVisitor
+import org.objectweb.asm.util.TraceClassVisitor
+import org.objectweb.asm.util.TraceMethodVisitor
 
 private val LOGGER = loggerForTopLevel()
 
@@ -129,9 +143,24 @@ private fun hasModifier(access: Int, @PsiModifier.ModifierConstant modifier: Str
 }
 
 fun Type.toPsiType(elementFactory: PsiElementFactory, context: PsiElement? = null): PsiType {
+    if (this == ExpressionASMUtils.INTLIKE_TYPE) {
+        return PsiTypes.intType()
+    }
     val javaClassName = className.replace("(\\$)(\\D)".toRegex()) { "." + it.groupValues[2] }
     return elementFactory.createTypeFromText(javaClassName, context)
 }
+
+val Type.canonicalName get() = computeCanonicalName(this)
+
+private fun computeCanonicalName(type: Type): String {
+    return when (type.sort) {
+        Type.ARRAY -> computeCanonicalName(type.elementType) + "[]".repeat(type.dimensions)
+        Type.OBJECT -> type.className.replace('$', '.')
+        else -> type.className
+    }
+}
+
+val Type.isPrimitive get() = sort != Type.ARRAY && sort != Type.OBJECT && sort != Type.METHOD
 
 private fun hasAccess(access: Int, flag: Int) = (access and flag) != 0
 
@@ -152,13 +181,10 @@ private val LOAD_CLASS_FILE_BYTES: Method? = runCatching {
         .let { it.isAccessible = true; it }
 }.getOrNull()
 
+private val INNER_CLASS_NODES_KEY = Key.create<CachedValue<ConcurrentMap<String, ClassNode?>>>("mcdev.innerClassNodes")
+
 /**
  * Tries to find the bytecode for the class for the given qualified name.
- *
- * ### Implementation note:
- * First attempts to resolve the class using [findQualifiedClass]. This may fail in the case of anonymous classes, which
- * don't exist inside `PsiCompiledElement`s, so it then creates a fake `PsiClass` based on the qualified name and
- * attempts to resolve it from that.
  */
 fun findClassNodeByQualifiedName(project: Project, module: Module?, fqn: String): ClassNode? {
     val psiClass = findQualifiedClass(project, fqn)
@@ -166,52 +192,70 @@ fun findClassNodeByQualifiedName(project: Project, module: Module?, fqn: String)
         return findClassNodeByPsiClass(psiClass, module)
     }
 
-    // try to find it by a fake one
-    val fakeClassNode = ClassNode()
-    fakeClassNode.name = fqn.replace('.', '/')
-    val fakePsiClass = fakeClassNode.constructClass(project, "") ?: return null
-    return findClassNodeByPsiClass(fakePsiClass, module)
+    fun resolveViaFakeClass(): ClassNode? {
+        val fakeClassNode = ClassNode()
+        fakeClassNode.name = fqn.replace('.', '/')
+        val fakePsiClass = fakeClassNode.constructClass(project, "") ?: return null
+        return findClassNodeByPsiClass(fakePsiClass, module)
+    }
+
+    val outerClass = findQualifiedClass(project, fqn.substringBefore('$'))
+    if (outerClass != null) {
+        val innerClasses = outerClass.lockedCached(
+            INNER_CLASS_NODES_KEY,
+            compute = ::ConcurrentHashMap
+        )
+        return innerClasses.computeIfAbsent(fqn) { resolveViaFakeClass() }
+    }
+
+    return resolveViaFakeClass()
 }
 
+private val NODE_BY_PSI_CLASS_KEY = Key.create<CachedValue<ClassNode?>>("mcdev.nodeByPsiClass")
+
 fun findClassNodeByPsiClass(psiClass: PsiClass, module: Module? = psiClass.findModule()): ClassNode? {
-    return try {
-        val bytes = LOAD_CLASS_FILE_BYTES?.invoke(null, psiClass) as? ByteArray
-        if (bytes == null) {
-            // find compiler output
-            if (module == null) return null
-            val fqn = psiClass.fullQualifiedName ?: return null
-            var parentDir = CompilerModuleExtension.getInstance(module)?.compilerOutputPath ?: return null
-            val packageName = fqn.substringBeforeLast('.', "")
-            if (packageName.isNotEmpty()) {
-                for (dir in packageName.split('.')) {
-                    parentDir = parentDir.findChild(dir) ?: return null
+    return psiClass.lockedCached(NODE_BY_PSI_CLASS_KEY) {
+        try {
+            val bytes = LOAD_CLASS_FILE_BYTES?.invoke(null, psiClass) as? ByteArray
+            if (bytes == null) {
+                // find compiler output
+                if (module == null) return@lockedCached null
+                val fqn = psiClass.fullQualifiedName ?: return@lockedCached null
+                var parentDir = CompilerModuleExtension.getInstance(module)?.compilerOutputPath
+                    ?: return@lockedCached null
+                val packageName = fqn.substringBeforeLast('.', "")
+                if (packageName.isNotEmpty()) {
+                    for (dir in packageName.split('.')) {
+                        parentDir = parentDir.findChild(dir) ?: return@lockedCached null
+                    }
                 }
+                val classFile = parentDir.findChild("${fqn.substringAfterLast('.')}.class")
+                    ?: return@lockedCached null
+                val node = ClassNode()
+                classFile.inputStream.use { ClassReader(it).accept(node, 0) }
+                node
+            } else {
+                val node = ClassNode()
+                ClassReader(bytes).accept(node, 0)
+                node
             }
-            val classFile = parentDir.findChild("${fqn.substringAfterLast('.')}.class") ?: return null
-            val node = ClassNode()
-            classFile.inputStream.use { ClassReader(it).accept(node, 0) }
-            node
-        } else {
-            val node = ClassNode()
-            ClassReader(bytes).accept(node, 0)
-            node
-        }
-    } catch (e: Throwable) {
-        val actualThrowable = if (e is InvocationTargetException) e.cause ?: e else e
-        if (actualThrowable is ProcessCanceledException) {
-            throw actualThrowable
-        }
+        } catch (e: Throwable) {
+            val actualThrowable = if (e is InvocationTargetException) e.cause ?: e else e
+            if (actualThrowable is ProcessCanceledException) {
+                throw actualThrowable
+            }
 
-        if (actualThrowable is NoSuchFileException) {
-            return null
-        }
+            if (actualThrowable is NoSuchFileException) {
+                return@lockedCached null
+            }
 
-        val message = actualThrowable.message
-        // TODO: display an error to the user?
-        if (message == null || !message.contains("Unsupported class file major version")) {
-            LOGGER.error(actualThrowable)
+            val message = actualThrowable.message
+            // TODO: display an error to the user?
+            if (message == null || !message.contains("Unsupported class file major version")) {
+                LOGGER.error(actualThrowable)
+            }
+            null
         }
-        null
     }
 }
 
@@ -325,8 +369,11 @@ private fun ClassNode.constructClass(project: Project, body: String): PsiClass? 
     return clazz
 }
 
-inline fun <T> ClassNode.cached(project: Project, vararg dependencies: Any, crossinline compute: () -> T): T {
-    return findStubClass(project)?.cached(*dependencies, compute = compute) ?: compute()
+fun <T> ClassNode.cached(project: Project, vararg dependencies: Any, compute: (ClassNode) -> T): T {
+    val unsafeClass = UnsafeCachedValueCapture(this)
+    return findStubClass(project)?.cached(*dependencies) {
+        compute(unsafeClass.value)
+    } ?: compute(this)
 }
 
 /**
@@ -452,13 +499,17 @@ fun FieldNode.getGenericType(
     return Type.getType(this.desc).toPsiType(elementFactory)
 }
 
-inline fun <T> FieldNode.cached(
+fun <T> FieldNode.cached(
     clazz: ClassNode,
     project: Project,
     vararg dependencies: Any,
-    crossinline compute: () -> T,
+    compute: (ClassNode, FieldNode) -> T,
 ): T {
-    return findStubField(clazz, project)?.cached(*dependencies, compute = compute) ?: compute()
+    val unsafeClass = UnsafeCachedValueCapture(clazz)
+    val unsafeField = UnsafeCachedValueCapture(this)
+    return findStubField(clazz, project)?.cached(*dependencies) {
+        compute(unsafeClass.value, unsafeField.value)
+    } ?: compute(clazz, this)
 }
 
 fun FieldNode.findStubField(clazz: ClassNode, project: Project): PsiField? {
@@ -693,13 +744,17 @@ private fun findAssociatedLambda(psiClass: PsiClass, clazz: ClassNode, lambdaMet
     }
 }
 
-inline fun <T> MethodNode.cached(
+fun <T> MethodNode.cached(
     clazz: ClassNode,
     project: Project,
     vararg dependencies: Array<Any>,
-    crossinline compute: () -> T,
+    compute: (ClassNode, MethodNode) -> T,
 ): T {
-    return findStubMethod(clazz, project)?.cached(*dependencies, compute = compute) ?: compute()
+    val unsafeClass = UnsafeCachedValueCapture(clazz)
+    val unsafeMethod = UnsafeCachedValueCapture(this)
+    return findStubMethod(clazz, project)?.cached(*dependencies) {
+        compute(unsafeClass.value, unsafeMethod.value)
+    } ?: compute(clazz, this)
 }
 
 fun MethodNode.findStubMethod(clazz: ClassNode, project: Project): PsiMethod? {
@@ -931,4 +986,44 @@ fun MethodInsnNode.fakeResolve(): ClassAndMethodNode {
     clazz.methods = mutableListOf(method)
     addConstructorToFakeClass(clazz)
     return ClassAndMethodNode(clazz, method)
+}
+
+// Textifier
+
+fun ClassNode.textify(): String {
+    val sw = StringWriter()
+    accept(TraceClassVisitor(PrintWriter(sw)))
+    return sw.toString().replaceIndent().trimEnd()
+}
+
+fun FieldNode.textify(): String {
+    val cv = TraceClassVisitor(null)
+    accept(cv)
+    val sw = StringWriter()
+    cv.p.print(PrintWriter(sw))
+    return sw.toString().replaceIndent().trimEnd()
+}
+
+fun MethodNode.textify(): String {
+    val cv = TraceClassVisitor(null)
+    accept(cv)
+    val sw = StringWriter()
+    cv.p.print(PrintWriter(sw))
+    return sw.toString().replaceIndent().trimEnd()
+}
+
+fun AnnotationNode.textify(): String {
+    val textifier = Textifier()
+    accept(TraceAnnotationVisitor(textifier))
+    val sw = StringWriter()
+    textifier.print(PrintWriter(sw))
+    return sw.toString().replaceIndent().trimEnd()
+}
+
+fun AbstractInsnNode.textify(): String {
+    val mv = TraceMethodVisitor(Textifier())
+    accept(mv)
+    val sw = StringWriter()
+    mv.p.print(PrintWriter(sw))
+    return sw.toString().replaceIndent().trimEnd()
 }

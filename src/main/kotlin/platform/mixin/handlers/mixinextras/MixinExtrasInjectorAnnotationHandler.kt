@@ -35,8 +35,10 @@ import com.demonwav.mcdev.util.Parameter
 import com.demonwav.mcdev.util.toJavaIdentifier
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
+import com.llamalad7.mixinextras.expression.impl.utils.ExpressionDecorations
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
@@ -52,30 +54,43 @@ abstract class MixinExtrasInjectorAnnotationHandler : InjectorAnnotationHandler(
 
     enum class InstructionType {
         METHOD_CALL {
-            override fun matches(insn: AbstractInsnNode) = insn is MethodInsnNode && insn.name != "<init>"
+            override fun matches(target: TargetInsn) = target.insn is MethodInsnNode && target.insn.name != "<init>"
         },
         FIELD_GET {
-            override fun matches(insn: AbstractInsnNode) =
-                insn.opcode == Opcodes.GETFIELD || insn.opcode == Opcodes.GETSTATIC
+            override fun matches(target: TargetInsn) =
+                target.insn.opcode == Opcodes.GETFIELD || target.insn.opcode == Opcodes.GETSTATIC
         },
         FIELD_SET {
-            override fun matches(insn: AbstractInsnNode) =
-                insn.opcode == Opcodes.PUTFIELD || insn.opcode == Opcodes.PUTSTATIC
+            override fun matches(target: TargetInsn) =
+                target.insn.opcode == Opcodes.PUTFIELD || target.insn.opcode == Opcodes.PUTSTATIC
         },
         INSTANTIATION {
-            override fun matches(insn: AbstractInsnNode) = insn.opcode == Opcodes.NEW
+            override fun matches(target: TargetInsn) = target.insn.opcode == Opcodes.NEW
         },
         INSTANCEOF {
-            override fun matches(insn: AbstractInsnNode) = insn.opcode == Opcodes.INSTANCEOF
+            override fun matches(target: TargetInsn) = target.insn.opcode == Opcodes.INSTANCEOF
         },
         CONSTANT {
-            override fun matches(insn: AbstractInsnNode) = isConstant(insn)
+            override fun matches(target: TargetInsn) = isConstant(target.insn)
         },
         RETURN {
-            override fun matches(insn: AbstractInsnNode) = insn.opcode in Opcodes.IRETURN..Opcodes.ARETURN
+            override fun matches(target: TargetInsn) = target.insn.opcode in Opcodes.IRETURN..Opcodes.ARETURN
+        },
+        SIMPLE_OPERATION {
+            override fun matches(target: TargetInsn) =
+                target.hasDecoration(ExpressionDecorations.SIMPLE_OPERATION_ARGS) &&
+                    target.hasDecoration(ExpressionDecorations.SIMPLE_OPERATION_RETURN_TYPE)
+        },
+        SIMPLE_EXPRESSION {
+            override fun matches(target: TargetInsn) =
+                target.hasDecoration(ExpressionDecorations.SIMPLE_EXPRESSION_TYPE)
+        },
+        STRING_CONCAT_EXPRESSION {
+            override fun matches(target: TargetInsn) =
+                target.hasDecoration(ExpressionDecorations.IS_STRING_CONCAT_EXPRESSION)
         };
 
-        abstract fun matches(insn: AbstractInsnNode): Boolean
+        abstract fun matches(target: TargetInsn): Boolean
     }
 
     abstract val supportedInstructionTypes: Collection<InstructionType>
@@ -86,8 +101,12 @@ abstract class MixinExtrasInjectorAnnotationHandler : InjectorAnnotationHandler(
         annotation: PsiAnnotation,
         targetClass: ClassNode,
         targetMethod: MethodNode,
-        insn: AbstractInsnNode
+        target: TargetInsn,
     ): Pair<ParameterGroup, PsiType>?
+
+    open fun intLikeTypePositions(
+        target: TargetInsn
+    ): List<MethodSignature.TypePosition> = emptyList()
 
     override val allowCoerce = true
 
@@ -98,25 +117,81 @@ abstract class MixinExtrasInjectorAnnotationHandler : InjectorAnnotationHandler(
     ): List<MethodSignature>? {
         val insns = resolveInstructions(annotation, targetClass, targetMethod)
             .ifEmpty { return emptyList() }
-            .map { it.insn }
+            .map { TargetInsn(it.insn, it.decorations) }
         if (insns.any { insn -> supportedInstructionTypes.none { it.matches(insn) } }) return emptyList()
-        val signatures = insns.map { expectedMethodSignature(annotation, targetClass, targetMethod, it) }
+        val signatures = insns.map { insn ->
+            expectedMethodSignature(annotation, targetClass, targetMethod, insn)
+        }
         val firstMatch = signatures[0] ?: return emptyList()
         if (signatures.drop(1).any { it != firstMatch }) return emptyList()
-        return listOf(
-            MethodSignature(
-                listOf(
-                    firstMatch.first,
-                    ParameterGroup(
-                        collectTargetMethodParameters(annotation.project, targetClass, targetMethod),
-                        required = ParameterGroup.RequiredLevel.OPTIONAL,
-                        isVarargs = true,
-                    ),
-                ),
-                firstMatch.second
-            )
+        val intLikeTypePositions = insns.map { intLikeTypePositions(it) }.distinct().singleOrNull().orEmpty()
+        return allPossibleSignatures(
+            annotation,
+            targetClass,
+            targetMethod,
+            firstMatch.first,
+            firstMatch.second,
+            intLikeTypePositions
         )
     }
+
+    private fun allPossibleSignatures(
+        annotation: PsiAnnotation,
+        targetClass: ClassNode,
+        targetMethod: MethodNode,
+        params: ParameterGroup,
+        returnType: PsiType,
+        intLikeTypePositions: List<MethodSignature.TypePosition>
+    ): List<MethodSignature> {
+        if (intLikeTypePositions.isEmpty()) {
+            return listOf(
+                makeSignature(annotation, targetClass, targetMethod, params, returnType, intLikeTypePositions)
+            )
+        }
+        return buildList {
+            for (actualType in intLikePsiTypes) {
+                val newParams = params.parameters.toMutableList()
+                var newReturnType = returnType
+                for (pos in intLikeTypePositions) {
+                    when (pos) {
+                        is MethodSignature.TypePosition.Return -> newReturnType = actualType
+                        is MethodSignature.TypePosition.Param ->
+                            newParams[pos.index] = newParams[pos.index].copy(type = actualType)
+                    }
+                }
+                add(
+                    makeSignature(
+                        annotation,
+                        targetClass,
+                        targetMethod,
+                        ParameterGroup(newParams),
+                        newReturnType,
+                        intLikeTypePositions
+                    )
+                )
+            }
+        }
+    }
+
+    private fun makeSignature(
+        annotation: PsiAnnotation,
+        targetClass: ClassNode,
+        targetMethod: MethodNode,
+        params: ParameterGroup,
+        returnType: PsiType,
+        intLikeTypePositions: List<MethodSignature.TypePosition>
+    ) = MethodSignature(
+        listOf(
+            params,
+            ParameterGroup(
+                collectTargetMethodParameters(annotation.project, targetClass, targetMethod),
+                required = ParameterGroup.RequiredLevel.OPTIONAL,
+                isVarargs = true,
+            ),
+        ),
+        returnType,
+        intLikeTypePositions
+    )
 
     protected fun getInsnReturnType(insn: AbstractInsnNode): Type? {
         return when {
@@ -287,7 +362,12 @@ abstract class MixinExtrasInjectorAnnotationHandler : InjectorAnnotationHandler(
             }
 
             else -> null
-        } ?: getInsnArgTypes(insn, targetClass)?.map { Parameter(null, it.toPsiType(elementFactory)) }
+        } ?: getInsnArgTypes(insn, targetClass)?.toParameters(annotation)
+    }
+
+    protected fun List<Type>.toParameters(context: PsiElement, names: Array<String>? = null): List<Parameter> {
+        val elementFactory = JavaPsiFacade.getElementFactory(context.project)
+        return mapIndexed { i, it -> Parameter(names?.getOrNull(i), it.toPsiType(elementFactory)) }
     }
 }
 
@@ -348,3 +428,7 @@ private fun getConstantType(insn: AbstractInsnNode?): Type? {
         }
     }
 }
+
+private val intLikePsiTypes = listOf(
+    PsiTypes.intType(), PsiTypes.booleanType(), PsiTypes.charType(), PsiTypes.byteType(), PsiTypes.shortType()
+)

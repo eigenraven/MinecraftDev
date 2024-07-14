@@ -27,6 +27,7 @@ import com.demonwav.mcdev.util.Parameter
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiTypes
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodInsnNode
@@ -58,4 +59,6 @@ class ModifyArgsHandler : InjectorAnnotationHandler() {
             ),
         )
     }
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.MODIFY_ARGS
 }

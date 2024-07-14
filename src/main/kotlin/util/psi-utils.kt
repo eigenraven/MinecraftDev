@@ -24,6 +24,7 @@ import com.demonwav.mcdev.facet.MinecraftFacet
 import com.demonwav.mcdev.platform.mcp.McpModule
 import com.demonwav.mcdev.platform.mcp.McpModuleType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
@@ -32,10 +33,12 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.impl.OrderEntryUtil
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.ElementManipulator
 import com.intellij.psi.ElementManipulators
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
@@ -45,12 +48,14 @@ import com.intellij.psi.PsiEllipsisType
 import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiKeyword
+import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiMethodReferenceExpression
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiModifier.ModifierConstant
 import com.intellij.psi.PsiModifierList
+import com.intellij.psi.PsiNameValuePair
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiReference
@@ -58,14 +63,21 @@ import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiType
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.filters.ElementFilter
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.TypeConversionUtil
+import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.changeSignature.ChangeSignatureUtil
 import com.intellij.util.IncorrectOperationException
 import com.siyeh.ig.psiutils.ImportUtils
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 // Parent
 fun PsiElement.findModule(): Module? = ModuleUtilCore.findModuleForPsiElement(this)
@@ -81,6 +93,10 @@ fun PsiElement.findContainingMember(): PsiMember? = findParent(resolveReferences
 fun PsiElement.findContainingMethod(): PsiMethod? = findParent(resolveReferences = false) { it is PsiClass }
 
 fun PsiElement.findContainingModifierList(): PsiModifierList? = findParent(resolveReferences = false) { it is PsiClass }
+
+fun PsiElement.findContainingNameValuePair(): PsiNameValuePair? = findParent(resolveReferences = false) {
+    it is PsiClass || it is PsiMethod || it is PsiAnnotation
+}
 
 private val PsiElement.ancestors: Sequence<PsiElement>
     get() = generateSequence(this) { if (it is PsiFile) null else it.parent }
@@ -174,6 +190,18 @@ inline fun <reified T : PsiElement> PsiElement.childrenOfType(): Collection<T> =
 inline fun <reified T : PsiElement> PsiElement.childOfType(): T? =
     PsiTreeUtil.findChildOfType(this, T::class.java)
 
+/**
+ * [InjectedLanguageManager.getInjectionHost] returns the first host of a multi-host injection for some reason.
+ * Use this method as a workaround.
+ */
+fun PsiElement.findMultiInjectionHost(): PsiLanguageInjectionHost? {
+    val injectedLanguageManager = InjectedLanguageManager.getInstance(project)
+    val hostFile = injectedLanguageManager.getInjectionHost(this)?.containingFile ?: return null
+    val hostOffset = injectedLanguageManager.injectedToHost(this, textRange.startOffset)
+    val hostElement = hostFile.findElementAt(hostOffset) ?: return null
+    return hostElement.parentOfType<PsiLanguageInjectionHost>(withSelf = true)
+}
+
 fun <T : Any> Sequence<T>.filter(filter: ElementFilter?, context: PsiElement): Sequence<T> {
     filter ?: return this
     return filter { filter.isAcceptable(it, context) }
@@ -223,6 +251,36 @@ val <T : PsiElement> T.manipulator: ElementManipulator<T>?
 inline fun <T> PsiElement.cached(vararg dependencies: Any, crossinline compute: () -> T): T {
     return CachedValuesManager.getCachedValue(this) {
         CachedValueProvider.Result.create(compute(), *(dependencies.toList() + this).toTypedArray())
+    }
+}
+
+@PublishedApi
+internal val CACHE_LOCKS_KEY = Key.create<ConcurrentMap<Key<*>, ReentrantReadWriteLock>>("mcdev.cacheLock")
+
+inline fun <T> PsiElement.lockedCached(
+    key: Key<CachedValue<T>>,
+    vararg dependencies: Any,
+    crossinline compute: () -> T,
+): T {
+    val cacheLocks = (this as UserDataHolderEx).putUserDataIfAbsent(CACHE_LOCKS_KEY, ConcurrentHashMap())
+    val cacheLock = cacheLocks.computeIfAbsent(key) { ReentrantReadWriteLock() }
+
+    cacheLock.read {
+        val value = getUserData(key)?.upToDateOrNull
+        if (value != null) {
+            return value.get()
+        }
+    }
+
+    cacheLock.write {
+        val value = getUserData(key)?.upToDateOrNull
+        if (value != null) {
+            return value.get()
+        }
+
+        return CachedValuesManager.getCachedValue(this, key) {
+            CachedValueProvider.Result.create(compute(), *(dependencies.toList() + this).toTypedArray())
+        }
     }
 }
 

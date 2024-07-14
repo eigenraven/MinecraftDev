@@ -32,6 +32,7 @@ import com.demonwav.mcdev.util.findContainingMethod
 import com.demonwav.mcdev.util.findModule
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -85,4 +86,6 @@ class ModifyVariableHandler : InjectorAnnotationHandler() {
 
         return result
     }
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.MODIFY_VARIABLE
 }

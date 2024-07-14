@@ -39,6 +39,7 @@ class MixinCompletionConfidence : CompletionConfidence() {
             PsiJavaPatterns.psiAnnotation().qName(
                 StandardPatterns.or(
                     StandardPatterns.string().startsWith(MixinConstants.PACKAGE),
+                    StandardPatterns.string().startsWith(MixinConstants.MixinExtras.PACKAGE),
                     StandardPatterns.string()
                         .oneOf(MixinAnnotationHandler.getBuiltinHandlers().map { it.first }.toList()),
                 )

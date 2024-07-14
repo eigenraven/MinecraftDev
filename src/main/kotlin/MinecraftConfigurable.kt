@@ -22,6 +22,7 @@ package com.demonwav.mcdev
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.asset.PlatformAssets
+import com.demonwav.mcdev.creator.custom.templateRepoTable
 import com.demonwav.mcdev.update.ConfigurePluginUpdatesDialog
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.options.Configurable
@@ -31,6 +32,7 @@ import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.components.Label
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.BottomGap
+import com.intellij.ui.dsl.builder.MutableProperty
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
@@ -84,11 +86,17 @@ class MinecraftConfigurable : Configurable {
             }
         }
 
-        group(MCDevBundle("minecraft.settings.mixin")) {
+        group(MCDevBundle("minecraft.settings.creator")) {
+            row(MCDevBundle("minecraft.settings.creator.repos")) {}
+
             row {
-                checkBox(MCDevBundle("minecraft.settings.mixin.shadow_annotation_same_line"))
-                    .bindSelected(settings::isShadowAnnotationsSameLine)
-            }
+                templateRepoTable(
+                    MutableProperty(
+                        { settings.creatorTemplateRepos.toMutableList() },
+                        { settings.creatorTemplateRepos = it }
+                    )
+                )
+            }.resizableRow()
         }
 
         onApply {

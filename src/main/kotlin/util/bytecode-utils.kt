@@ -69,7 +69,9 @@ fun getPrimitiveType(internalName: Char): PsiPrimitiveType? {
 }
 
 val PsiType.descriptor
-    get() = appendDescriptor(StringBuilder()).toString()
+    get() = erasure().appendDescriptor(StringBuilder()).toString()
+
+private fun PsiType.erasure() = TypeConversionUtil.erasure(this)!!
 
 fun getPrimitiveWrapperClass(internalName: Char, project: Project): PsiClass? {
     val type = getPrimitiveType(internalName) ?: return null

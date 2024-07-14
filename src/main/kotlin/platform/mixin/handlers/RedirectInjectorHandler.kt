@@ -39,6 +39,7 @@ import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
@@ -104,6 +105,8 @@ class RedirectInjectorHandler : InjectorAnnotationHandler() {
     }
 
     override val allowCoerce = true
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.REDIRECT
 
     private interface RedirectType {
         fun isInsnAllowed(node: AbstractInsnNode) = true

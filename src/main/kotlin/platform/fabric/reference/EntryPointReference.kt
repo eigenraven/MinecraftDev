@@ -25,6 +25,8 @@ import com.demonwav.mcdev.util.fullQualifiedName
 import com.demonwav.mcdev.util.manipulator
 import com.demonwav.mcdev.util.reference.InspectionReference
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
+import com.intellij.json.psi.JsonArray
+import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.JavaPsiFacade
@@ -40,7 +42,9 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.ResolveResult
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.ArrayUtil
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ProcessingContext
@@ -136,27 +140,17 @@ object EntryPointReference : PsiReferenceProvider() {
 
     fun isEntryPointReference(reference: PsiReference) = reference is Reference
 
-    fun isValidEntrypointClass(element: PsiClass): Boolean {
-        val psiFacade = JavaPsiFacade.getInstance(element.project)
-        var inheritsEntrypointInterface = false
-        for (entrypoint in FabricConstants.ENTRYPOINTS) {
-            val entrypointClass = psiFacade.findClass(entrypoint, element.resolveScope)
-                ?: continue
-            if (element.isInheritor(entrypointClass, true)) {
-                inheritsEntrypointInterface = true
-                break
-            }
-        }
-        return inheritsEntrypointInterface
+    fun isValidEntrypointClass(element: PsiClass, entrypointClass: PsiClass): Boolean {
+        return element.isInheritor(entrypointClass, true)
     }
 
-    fun isValidEntrypointField(field: PsiField): Boolean {
+    fun isValidEntrypointField(field: PsiField, entrypointClass: PsiClass): Boolean {
         if (!field.hasModifierProperty(PsiModifier.PUBLIC) || !field.hasModifierProperty(PsiModifier.STATIC)) {
             return false
         }
 
         val fieldTypeClass = (field.type as? PsiClassType)?.resolve()
-        return fieldTypeClass != null && isValidEntrypointClass(fieldTypeClass)
+        return fieldTypeClass != null && isValidEntrypointClass(fieldTypeClass, entrypointClass)
     }
 
     fun isValidEntrypointMethod(method: PsiMethod): Boolean {
@@ -228,30 +222,36 @@ object EntryPointReference : PsiReferenceProvider() {
             val text = element.text.substring(range.startOffset, range.endOffset)
             val parts = text.split("::", limit = 2)
 
+            val psiFacade = JavaPsiFacade.getInstance(element.project)
+            val entrypointType = getEntrypointType()?.let(FabricConstants.ENTRYPOINT_BY_TYPE::get)
+                ?: return ArrayUtil.EMPTY_OBJECT_ARRAY
+            val entrypointClass = psiFacade.findClass(entrypointType, element.resolveScope)
+                ?: return ArrayUtil.EMPTY_OBJECT_ARRAY
+
             val variants = mutableListOf<Any>()
             if (!isMemberReference) {
-                val psiFacade = JavaPsiFacade.getInstance(element.project)
-                for (entrypoint in FabricConstants.ENTRYPOINTS) {
-                    val entrypointClass = psiFacade.findClass(entrypoint, element.resolveScope)
-                        ?: continue
-                    ClassInheritorsSearch.search(entrypointClass, true)
-                        .mapNotNullTo(variants) {
-                            val shortName = it.name ?: return@mapNotNullTo null
-                            val fqName = it.fullQualifiedName ?: return@mapNotNullTo null
-                            JavaLookupElementBuilder.forClass(it, fqName, true).withPresentableText(shortName)
-                        }
-                }
+                val scope = element.resolveScope.intersectWith(GlobalSearchScope.projectScope(element.project))
+                ClassInheritorsSearch.search(entrypointClass, scope, true)
+                    .mapNotNullTo(variants) {
+                        val shortName = it.name ?: return@mapNotNullTo null
+                        val fqName = it.fullQualifiedName ?: return@mapNotNullTo null
+                        JavaLookupElementBuilder.forClass(it, fqName, true).withPresentableText(shortName)
+                    }
             } else if (parts.size >= 2) {
-                val psiFacade = JavaPsiFacade.getInstance(element.project)
                 val className = parts[0].replace('$', '.')
                 val clazz = psiFacade.findClass(className, element.resolveScope)
                 if (clazz != null) {
-                    clazz.fields.filterTo(variants, ::isValidEntrypointField)
+                    clazz.fields.filterTo(variants) { isValidEntrypointField(it, entrypointClass) }
                     clazz.methods.filterTo(variants, ::isValidEntrypointMethod)
                 }
             }
 
             return variants.toTypedArray()
+        }
+
+        private fun getEntrypointType(): String? {
+            val entrypointsProperty = element.parentOfType<JsonArray>()?.parent as? JsonProperty
+            return entrypointsProperty?.name
         }
     }
 }

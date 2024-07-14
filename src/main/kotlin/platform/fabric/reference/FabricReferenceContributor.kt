@@ -23,9 +23,11 @@ package com.demonwav.mcdev.platform.fabric.reference
 import com.demonwav.mcdev.platform.fabric.util.FabricConstants
 import com.demonwav.mcdev.util.isPropertyValue
 import com.intellij.json.psi.JsonArray
+import com.intellij.json.psi.JsonElement
 import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceRegistrar
 
@@ -34,19 +36,25 @@ class FabricReferenceContributor : PsiReferenceContributor() {
         val stringInModJson = PlatformPatterns.psiElement(JsonStringLiteral::class.java)
             .inVirtualFile(PlatformPatterns.virtualFile().withName(FabricConstants.FABRIC_MOD_JSON))
 
-        val entryPointPattern = stringInModJson.withParent(
-            PlatformPatterns.psiElement(JsonArray::class.java)
-                .withSuperParent(
-                    2,
-                    PlatformPatterns.psiElement(JsonObject::class.java).isPropertyValue("entrypoints"),
-                ),
-        )
+        val entrypointsArray = PlatformPatterns.psiElement(JsonArray::class.java)
+            .withSuperParent(2, PlatformPatterns.psiElement(JsonObject::class.java).isPropertyValue("entrypoints"))
+        val entryPointSimplePattern = stringInModJson.withParent(entrypointsArray)
+        val entryPointObjectPattern = stringInModJson.isPropertyValue("value")
+            .withSuperParent(2, PlatformPatterns.psiElement(JsonObject::class.java).withParent(entrypointsArray))
+        val entryPointPattern = StandardPatterns.or(entryPointSimplePattern, entryPointObjectPattern)
         registrar.registerReferenceProvider(entryPointPattern, EntryPointReference)
 
-        val mixinConfigPattern = stringInModJson.withParent(
+        val mixinConfigSimplePattern = stringInModJson.withParent(
             PlatformPatterns.psiElement(JsonArray::class.java).isPropertyValue("mixins"),
         )
-        registrar.registerReferenceProvider(mixinConfigPattern, ResourceFileReference("mixin config '%s'"))
+        val mixinsConfigArray = PlatformPatterns.psiElement(JsonArray::class.java).isPropertyValue("mixins")
+        val mixinConfigObjectPattern = stringInModJson.isPropertyValue("config")
+            .withSuperParent(2, PlatformPatterns.psiElement(JsonElement::class.java).withParent(mixinsConfigArray))
+        val mixinConfigPattern = StandardPatterns.or(mixinConfigSimplePattern, mixinConfigObjectPattern)
+        registrar.registerReferenceProvider(
+            mixinConfigPattern,
+            ResourceFileReference("mixin config '%s'", Regex("(.+)\\.mixins\\.json"))
+        )
 
         registrar.registerReferenceProvider(
             stringInModJson.isPropertyValue("accessWidener"),

@@ -21,6 +21,7 @@
 import org.cadixdev.gradle.licenser.header.HeaderStyle
 import org.cadixdev.gradle.licenser.tasks.LicenseUpdate
 import org.gradle.internal.jvm.Jvm
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
@@ -37,6 +38,7 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.0.0-beta8"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
+    id("org.jetbrains.changelog") version "2.2.0"
 }
 
 val ideaVersion: String by project
@@ -75,6 +77,26 @@ val gradleToolingExtensionJar = tasks.register<Jar>(gradleToolingExtensionSource
     exclude("META-INF/plugin.xml")
 }
 
+val templatesSourceSet: SourceSet = sourceSets.create("templates") {
+    resources {
+        srcDir("templates")
+        compileClasspath += sourceSets.main.get().output
+    }
+}
+
+val templateSourceSets: List<SourceSet> = (file("templates").listFiles() ?: emptyArray()).mapNotNull { file ->
+    if (file.isDirectory() && (file.listFiles() ?: emptyArray()).any { it.name.endsWith(".mcdev.template.json") }) {
+        sourceSets.create("templates-${file.name}") {
+            resources {
+                srcDir(file)
+                compileClasspath += sourceSets.main.get().output
+            }
+        }
+    } else {
+        null
+    }
+}
+
 val externalAnnotationsJar = tasks.register<Jar>("externalAnnotationsJar") {
     from("externalAnnotations")
     destinationDirectory.set(layout.buildDirectory.dir("externalAnnotations"))
@@ -86,9 +108,11 @@ repositories {
     maven("https://maven.fabricmc.net/") {
         content {
             includeModule("net.fabricmc", "mapping-io")
+            includeModule("net.fabricmc", "fabric-loader")
         }
     }
     mavenCentral()
+    maven("https://repo.spongepowered.org/maven/")
 
     intellijPlatform {
         defaultRepositories()
@@ -109,6 +133,10 @@ configurations.all {
 dependencies {
     // Add tools.jar for the JDI API
     implementation(files(Jvm.current().toolsJar))
+
+    implementation(libs.mixinExtras.expressions)
+    testLibs(libs.mixinExtras.common)
+    implementation("org.ow2.asm:asm-util:9.3")
 
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
@@ -141,6 +169,7 @@ dependencies {
         // For some reason the Kotlin plugin can't be resolved...
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("ByteCodeViewer")
+        bundledPlugin("org.intellij.intelliLang")
         bundledPlugin("com.intellij.properties")
         bundledPlugin("org.toml.lang")
 
@@ -162,6 +191,7 @@ dependencies {
             classifier = "shaded"
         }
     }
+    testLibs(libs.test.fabricloader)
     testLibs(libs.test.nbt) {
         artifact {
             extension = "nbt"
@@ -207,6 +237,12 @@ configurations.compileClasspath {
     attributes.attribute(filtered, true)
 }
 
+changelog {
+    version = coreVersion
+    groups.empty()
+    path = "changelog.md"
+}
+
 intellijPlatform {
     sandboxContainer.set(layout.projectDirectory.dir(".sandbox"))
 
@@ -215,6 +251,11 @@ intellijPlatform {
             recommended()
         }
     }
+}
+
+tasks.patchPluginXml {
+    val changelog = project.changelog
+    changeNotes = changelog.render(Changelog.OutputType.HTML)
 }
 
 tasks.withType<PublishPluginTask> {
@@ -364,7 +405,13 @@ val generateNbttParser by parser("NbttParser", "com/demonwav/mcdev/nbt/lang/gen"
 val generateLangLexer by lexer("LangLexer", "com/demonwav/mcdev/translations/lang/gen")
 val generateLangParser by parser("LangParser", "com/demonwav/mcdev/translations/lang/gen")
 
-val generateTranslationTemplateLexer by lexer("TranslationTemplateLexer", "com/demonwav/mcdev/translations/lang/gen")
+val generateMEExpressionLexer by lexer("MEExpressionLexer", "com/demonwav/mcdev/platform/mixin/expression/gen")
+val generateMEExpressionParser by parser("MEExpressionParser", "com/demonwav/mcdev/platform/mixin/expression/gen")
+
+val generateTranslationTemplateLexer by lexer(
+    "TranslationTemplateLexer",
+    "com/demonwav/mcdev/translations/template/gen"
+)
 
 val generate by tasks.registering {
     group = "minecraft"
@@ -379,6 +426,8 @@ val generate by tasks.registering {
         generateNbttParser,
         generateLangLexer,
         generateLangParser,
+        generateMEExpressionLexer,
+        generateMEExpressionParser,
         generateTranslationTemplateLexer,
     )
 }
@@ -395,8 +444,13 @@ tasks.register("cleanSandbox", Delete::class) {
 }
 
 tasks.withType<PrepareSandboxTask> {
+    pluginJar.set(tasks.jar.get().archiveFile)
     from(externalAnnotationsJar) {
         into("MinecraftDev/lib/resources")
+    }
+    from("templates") {
+        exclude(".git")
+        into("Minecraft Development/lib/resources/builtin-templates")
     }
 }
 
@@ -408,12 +462,20 @@ tasks.runIde {
         systemProperty("idea.debug.mode", "true")
     }
     // Set these properties to test different languages
-    // systemProperty("user.language", "en")
-    // systemProperty("user.country", "US")
+    // systemProperty("user.language", "fr")
+    // systemProperty("user.country", "FR")
 }
 
 tasks.buildSearchableOptions {
     // not working atm
+    enabled = false
+}
+
+tasks.instrumentCode {
+    enabled = false
+}
+
+tasks.instrumentedJar {
     enabled = false
 }
 

@@ -24,6 +24,7 @@ import com.demonwav.mcdev.platform.mixin.inspection.injector.ParameterGroup
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
@@ -42,9 +43,11 @@ class WrapWithConditionHandler : MixinExtrasInjectorAnnotationHandler() {
         annotation: PsiAnnotation,
         targetClass: ClassNode,
         targetMethod: MethodNode,
-        insn: AbstractInsnNode
+        target: TargetInsn
     ): Pair<ParameterGroup, PsiType>? {
-        val params = getPsiParameters(insn, targetClass, annotation) ?: return null
+        val params = getPsiParameters(target.insn, targetClass, annotation) ?: return null
         return ParameterGroup(params) to PsiTypes.booleanType()
     }
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.WRAP_WITH_CONDITION
 }

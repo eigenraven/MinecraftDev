@@ -20,6 +20,8 @@
 
 package com.demonwav.mcdev.platform.mixin.reference
 
+import com.demonwav.mcdev.platform.mixin.reference.target.FieldDefinitionReference
+import com.demonwav.mcdev.platform.mixin.reference.target.MethodDefinitionReference
 import com.demonwav.mcdev.platform.mixin.reference.target.TargetReference
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.AT
 import com.demonwav.mcdev.util.insideAnnotationAttribute
@@ -64,6 +66,16 @@ class MixinReferenceContributor : PsiReferenceContributor() {
         registrar.registerReferenceProvider(
             InvokerReference.ELEMENT_PATTERN,
             InvokerReference,
+        )
+
+        // Definition references
+        registrar.registerReferenceProvider(
+            FieldDefinitionReference.ELEMENT_PATTERN,
+            FieldDefinitionReference,
+        )
+        registrar.registerReferenceProvider(
+            MethodDefinitionReference.ELEMENT_PATTERN,
+            MethodDefinitionReference,
         )
     }
 }

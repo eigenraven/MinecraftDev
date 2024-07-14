@@ -31,6 +31,7 @@ import com.demonwav.mcdev.util.Parameter
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.llamalad7.mixinextras.expression.impl.point.ExpressionContext
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 
@@ -80,4 +81,6 @@ class WrapMethodHandler : InjectorAnnotationHandler() {
             canDecompile = true
         )?.let(::listOf).orEmpty()
     }
+
+    override val mixinExtrasExpressionContextType = ExpressionContext.Type.CUSTOM
 }

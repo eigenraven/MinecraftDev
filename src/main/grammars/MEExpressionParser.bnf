@@ -1,0 +1,335 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="com.demonwav.mcdev.platform.mixin.expression.gen.MEExpressionParser"
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+    parserImports = ["static com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionParserUtil.*"]
+
+    psiClassPrefix="ME"
+    psiImplClassSuffix="Impl"
+    psiPackage="com.demonwav.mcdev.platform.mixin.expression.gen.psi"
+    psiImplPackage="com.demonwav.mcdev.platform.mixin.expression.gen.psi.impl"
+
+    elementTypeHolderClass="com.demonwav.mcdev.platform.mixin.expression.gen.psi.MEExpressionTypes"
+    elementTypeClass="com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionElementType"
+    tokenTypeClass="com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionTokenType"
+
+    tokens = [
+        TOKEN_RESERVED = "TOKEN_RESERVED"
+    ]
+
+    extends(".+Expression") = expression
+    extends(".+Statement") = statement
+}
+
+meExpressionFile ::= item* <<eof>>
+
+item ::= declarationItem | statementItem
+
+declarationItem ::= TOKEN_CLASS TOKEN_BOOL_LIT declaration {
+    pin = 1
+    extends = item
+    implements = [
+        "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MEDeclarationItemMixin"
+    ]
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEDeclarationItemImplMixin"
+}
+
+declaration ::= TOKEN_IDENTIFIER {
+    implements = [
+        "com.intellij.psi.PsiNamedElement"
+        "com.intellij.psi.PsiNameIdentifierOwner"
+        "com.intellij.psi.NavigatablePsiElement"
+    ]
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEDeclarationImplMixin"
+}
+
+statementItem ::= TOKEN_DO TOKEN_LEFT_BRACE statement TOKEN_RIGHT_BRACE {
+    pin = 1
+    extends = item
+}
+
+private statementRecover ::= !TOKEN_RIGHT_BRACE
+
+statement ::= assignStatement |
+    returnStatement |
+    throwStatement |
+    expressionStatement {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.MEMatchableElement"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEStatementImplMixin"
+    recoverWhile = statementRecover
+}
+
+assignStatement ::= assignableExpression TOKEN_ASSIGN expression {
+    pin = 2
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEAssignStatementImplMixin"
+    methods = [
+        targetExpr = "expression[0]"
+        rightExpr = "expression[1]"
+    ]
+}
+
+private assignableExpression ::= arrayAccessExpression | memberAccessExpression | nameExpression
+
+returnStatement ::= TOKEN_RETURN expression {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEReturnStatementImplMixin"
+    methods = [
+        valueExpr = "expression"
+    ]
+}
+
+throwStatement ::= TOKEN_THROW expression {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.METhrowStatementImplMixin"
+    methods = [
+        valueExpr = "expression"
+    ]
+}
+
+expressionStatement ::= expression {
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEExpressionStatementImplMixin"
+}
+
+private exprRecover ::= !( TOKEN_COMMA | TOKEN_RIGHT_PAREN | TOKEN_RIGHT_BRACKET | TOKEN_RIGHT_BRACE )
+
+expression ::= capturingExpression |
+    superCallExpression |
+    staticMethodCallExpression |
+    classConstantExpression |
+    unaryExpression |
+    binaryExpression |
+    castExpression |
+    parenthesizedExpression |
+    methodCallExpression |
+    boundMethodReferenceExpression |
+    freeMethodReferenceExpression |
+    constructorReferenceExpression |
+    arrayAccessExpression |
+    memberAccessExpression |
+    newExpression |
+    litExpression |
+    thisExpression |
+    nameExpression {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.MEMatchableElement"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEExpressionImplMixin"
+    recoverWhile = exprRecover
+}
+
+external rightParen ::= parseToRightBracket exprRecover TOKEN_RIGHT_PAREN
+external rightBracket ::= parseToRightBracket exprRecover TOKEN_RIGHT_BRACKET
+external rightBrace ::= parseToRightBracket exprRecover TOKEN_RIGHT_BRACE
+
+capturingExpression ::= TOKEN_AT TOKEN_LEFT_PAREN expression rightParen {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MECapturingExpressionImplMixin"
+}
+
+parenthesizedExpression ::= TOKEN_LEFT_PAREN expression rightParen {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEParenthesizedExpressionImplMixin"
+}
+
+superCallExpression ::= TOKEN_SUPER TOKEN_DOT name TOKEN_LEFT_PAREN arguments rightParen {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MESuperCallExpressionImplMixin"
+    methods = [
+        memberName = "name"
+    ]
+}
+
+methodCallExpression ::= expression TOKEN_DOT name TOKEN_LEFT_PAREN arguments rightParen {
+    pin = 4
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEMethodCallExpressionImplMixin"
+    methods = [
+        receiverExpr = "expression"
+        memberName = "name"
+    ]
+}
+
+staticMethodCallExpression ::= name TOKEN_LEFT_PAREN arguments rightParen {
+    pin = 2
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEStaticMethodCallExpressionImplMixin"
+    methods = [
+        memberName = "name"
+    ]
+}
+
+boundMethodReferenceExpression ::= expression !(TOKEN_METHOD_REF TOKEN_NEW) TOKEN_METHOD_REF name {
+    pin = 3
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEBoundReferenceExpressionImplMixin"
+    methods = [
+        receiverExpr = "expression"
+        memberName = "name"
+    ]
+}
+
+freeMethodReferenceExpression ::= TOKEN_METHOD_REF name {
+    pin = 1
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEFreeMethodReferenceExpressionImplMixin"
+    methods = [
+        memberName = "name"
+    ]
+}
+
+constructorReferenceExpression ::= type TOKEN_METHOD_REF TOKEN_NEW {
+    pin = 3
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEConstructorReferenceExpressionImplMixin"
+    methods = [
+        className = "type"
+    ]
+}
+
+arrayAccessExpression ::= expression TOKEN_LEFT_BRACKET expression? rightBracket {
+    pin = 2
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MEArrayAccessExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEArrayAccessExpressionImplMixin"
+    methods = [
+        arrayExpr = "expression[0]"
+        indexExpr = "expression[1]"
+    ]
+}
+
+classConstantExpression ::= type TOKEN_DOT TOKEN_CLASS {
+    pin = 3
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEClassConstantExpressionImplMixin"
+    methods = [
+        className = "name"
+    ]
+}
+
+memberAccessExpression ::= expression TOKEN_DOT name {
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEMemberAccessExpressionImplMixin"
+    methods = [
+        receiverExpr = "expression"
+        memberName = "name"
+    ]
+}
+
+unaryExpression ::= ((TOKEN_MINUS !(TOKEN_DEC_LIT | TOKEN_INT_LIT)) | TOKEN_BITWISE_NOT) expression {
+    pin = 2
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MEUnaryExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEUnaryExpressionImplMixin"
+}
+
+castExpression ::= parenthesizedExpression expression {
+    rightAssociative = true
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MECastExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MECastExpressionImplMixin"
+}
+
+binaryExpression ::= expression binaryOp expression {
+    pin = 2
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MEBinaryExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEBinaryExpressionImplMixin"
+    methods = [
+        leftExpr = "expression[0]"
+        rightExpr = "expression[1]"
+    ]
+}
+
+private binaryOp ::= multiplicativeOp |
+    additiveOp |
+    shiftOp |
+    comparisonOp |
+    TOKEN_INSTANCEOF |
+    equalityOp |
+    TOKEN_BITWISE_AND |
+    TOKEN_BITWISE_XOR |
+    TOKEN_BITWISE_OR
+
+private multiplicativeOp ::= TOKEN_MULT | TOKEN_DIV | TOKEN_MOD
+private additiveOp ::= TOKEN_PLUS | TOKEN_MINUS
+private shiftOp ::= TOKEN_SHL | TOKEN_SHR | TOKEN_USHR
+private comparisonOp ::= TOKEN_LT | TOKEN_LE | TOKEN_GT | TOKEN_GE
+private equalityOp ::= TOKEN_EQ | TOKEN_NE
+
+newExpression ::= TOKEN_NEW name (
+    (TOKEN_LEFT_PAREN arguments rightParen) |
+    (
+        TOKEN_LEFT_BRACKET expression? rightBracket
+        ( TOKEN_LEFT_BRACKET expression? rightBracket )*
+        ( TOKEN_LEFT_BRACE arguments rightBrace )?
+    )
+) {
+    pin = 1
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MENewExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MENewExpressionImplMixin"
+    methods = [
+        type = "name"
+        dimExprs = "expression"
+    ]
+}
+
+litExpression ::= decimalLitExpression | intLitExpression | stringLitExpression | boolLitExpression | nulLLitExpression {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MELitExpressionMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MELitExpressionImplMixin"
+}
+
+private decimalLitExpression ::= TOKEN_MINUS? TOKEN_DEC_LIT {
+    extends = litExpression
+}
+
+private intLitExpression ::= TOKEN_MINUS? TOKEN_INT_LIT {
+    extends = litExpression
+}
+
+private stringLitExpression ::= TOKEN_STRING_TERMINATOR ( TOKEN_STRING | TOKEN_STRING_ESCAPE )* TOKEN_STRING_TERMINATOR {
+    pin = 1
+    extends = litExpression
+}
+
+private boolLitExpression ::= TOKEN_BOOL_LIT {
+    extends = litExpression
+}
+
+private nulLLitExpression ::= TOKEN_NULL_LIT {
+    extends = litExpression
+}
+
+thisExpression ::= TOKEN_THIS {
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.METhisExpressionImplMixin"
+}
+
+nameExpression ::= name {
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MENameExpressionImplMixin"
+    methods = [
+        MEName = "name"
+    ]
+}
+
+type ::= name ( TOKEN_LEFT_BRACKET TOKEN_RIGHT_BRACKET )* {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.METypeMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.METypeImplMixin"
+    methods = [
+        MEName = "name"
+    ]
+}
+
+name ::= TOKEN_IDENTIFIER | TOKEN_WILDCARD {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MENameMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MENameImplMixin"
+}
+
+arguments ::= (expression (TOKEN_COMMA expression)*)? {
+    implements = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.MEArgumentsMixin"
+    mixin = "com.demonwav.mcdev.platform.mixin.expression.psi.mixins.impl.MEArgumentsImplMixin"
+}

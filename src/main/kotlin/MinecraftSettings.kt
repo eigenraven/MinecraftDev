@@ -20,11 +20,15 @@
 
 package com.demonwav.mcdev
 
+import com.demonwav.mcdev.asset.MCDevBundle
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.editor.markup.EffectType
+import com.intellij.util.xmlb.annotations.Attribute
+import com.intellij.util.xmlb.annotations.Tag
+import com.intellij.util.xmlb.annotations.Text
 
 @State(name = "MinecraftSettings", storages = [Storage("minecraft_dev.xml")])
 class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
@@ -36,8 +40,27 @@ class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
         var isShowChatColorUnderlines: Boolean = false,
         var underlineType: UnderlineType = UnderlineType.DOTTED,
 
-        var isShadowAnnotationsSameLine: Boolean = true,
+        var creatorTemplateRepos: List<TemplateRepo> = listOf(TemplateRepo.makeBuiltinRepo()),
     )
+
+    @Tag("repo")
+    data class TemplateRepo(
+        @get:Attribute("name")
+        var name: String,
+        @get:Attribute("provider")
+        var provider: String,
+        @get:Text
+        var data: String
+    ) {
+        constructor() : this("", "", "")
+
+        companion object {
+
+            fun makeBuiltinRepo(): TemplateRepo {
+                return TemplateRepo(MCDevBundle("minecraft.settings.creator.repo.builtin_name"), "builtin", "true")
+            }
+        }
+    }
 
     private var state = State()
 
@@ -47,6 +70,9 @@ class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
 
     override fun loadState(state: State) {
         this.state = state
+        if (state.creatorTemplateRepos.isEmpty()) {
+            state.creatorTemplateRepos = listOf()
+        }
     }
 
     // State mappings
@@ -80,10 +106,10 @@ class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
             state.underlineType = underlineType
         }
 
-    var isShadowAnnotationsSameLine: Boolean
-        get() = state.isShadowAnnotationsSameLine
-        set(shadowAnnotationsSameLine) {
-            state.isShadowAnnotationsSameLine = shadowAnnotationsSameLine
+    var creatorTemplateRepos: List<TemplateRepo>
+        get() = state.creatorTemplateRepos.map { it.copy() }
+        set(creatorTemplateRepos) {
+            state.creatorTemplateRepos = creatorTemplateRepos.map { it.copy() }
         }
 
     enum class UnderlineType(private val regular: String, val effectType: EffectType) {
