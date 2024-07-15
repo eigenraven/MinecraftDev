@@ -73,7 +73,7 @@ import com.intellij.psi.codeStyle.VariableKind
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.util.TypeConversionUtil
 import com.intellij.psi.util.parentOfType
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.startOffset
 import org.objectweb.asm.Opcodes
 
 class InvalidInjectorMethodSignatureInspection : MixinInspection() {
