@@ -35,14 +35,13 @@ plugins {
     mcdev
     groovy
     idea
-    id("org.jetbrains.intellij.platform") version "2.0.0-beta8"
+    id("org.jetbrains.intellij.platform") version "2.0.0"
     id("org.cadixdev.licenser")
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     id("org.jetbrains.changelog") version "2.2.0"
 }
 
-val ideaVersion: String by project
-val ideaVersionNoEapSnapshot = ideaVersion.removeSuffix("-EAP-SNAPSHOT")
+val ideaVersionProvider: Provider<String> = providers.gradleProperty("ideaVersion")
 val ideaVersionName: String by project
 val coreVersion: String by project
 
@@ -119,17 +118,6 @@ repositories {
     }
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        // For some reason dependency versions do not include the EAP-SNAPSHOT suffix anymore since beta7
-        // This works around the issue for now
-        // TODO remove when no longer needed
-        if (requested.version == ideaVersionNoEapSnapshot) {
-            useVersion(ideaVersion)
-        }
-    }
-}
-
 dependencies {
     // Add tools.jar for the JDI API
     implementation(files(Jvm.current().toolsJar))
@@ -161,7 +149,7 @@ dependencies {
     grammarKit(libs.grammarKit)
 
     intellijPlatform {
-        intellijIdeaCommunity(providers.gradleProperty("ideaVersion"))
+        intellijIdeaCommunity(ideaVersionProvider, useInstaller = false)
         bundledPlugin("com.intellij.java.ide")
         bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("com.intellij.gradle")
@@ -172,11 +160,6 @@ dependencies {
         bundledPlugin("org.intellij.intelliLang")
         bundledPlugin("com.intellij.properties")
         bundledPlugin("org.toml.lang")
-
-        // needed dependencies for unit tests
-        bundledPlugin("JUnit")
-
-        instrumentationTools()
 
         testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Plugin.Java)
@@ -249,7 +232,7 @@ intellijPlatform {
     instrumentCode = false
     buildSearchableOptions = false
 
-    verifyPlugin {
+    pluginVerification {
         ides {
             recommended()
         }
