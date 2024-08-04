@@ -27,7 +27,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.observable.properties.PropertyGraph
-import com.intellij.platform.util.coroutines.namedChildScope
+import com.intellij.platform.util.coroutines.childScope
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,5 +53,5 @@ data class CreatorContext(
     /**
      * A general purpose scope dependent of the main creator scope, cancelled when the creator is closed.
      */
-    fun childScope(name: String): CoroutineScope = scope.namedChildScope(name)
+    fun childScope(name: String): CoroutineScope = scope.childScope(name)
 }

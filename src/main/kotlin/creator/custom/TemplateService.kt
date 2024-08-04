@@ -25,7 +25,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.platform.util.coroutines.namedChildScope
+import com.intellij.platform.util.coroutines.childScope
 import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 
@@ -47,8 +47,7 @@ class TemplateService(private val scope: CoroutineScope) {
         pendingActions.remove(project.locationHash)?.invoke()
     }
 
-    @Suppress("UnstableApiUsage") // namedChildScope is Internal right now but has been promoted to Stable in 2024.2
-    fun scope(name: String): CoroutineScope = scope.namedChildScope(name)
+    fun scope(name: String): CoroutineScope = scope.childScope(name)
 
     companion object {
 
