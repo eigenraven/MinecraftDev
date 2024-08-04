@@ -19,7 +19,7 @@
  */
 
 {
-    parserClass="com.demonwav.mcdev.platform.mixin.expression.gen.MEExpressionParser"
+    parserClass="com.demonwav.mcdev.platform.mixin.expression.gen.parser.MEExpressionParser"
     extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
     parserImports = ["static com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionParserUtil.*"]
 

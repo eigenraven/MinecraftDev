@@ -22,19 +22,16 @@ package com.demonwav.mcdev.platform.sponge
 
 import com.demonwav.mcdev.asset.PlatformAssets
 import com.demonwav.mcdev.facet.MinecraftFacet
-import com.demonwav.mcdev.insight.generation.GenerationData
+import com.demonwav.mcdev.insight.generation.EventListenerGenerationSupport
 import com.demonwav.mcdev.inspection.IsCancelled
 import com.demonwav.mcdev.platform.AbstractModule
 import com.demonwav.mcdev.platform.PlatformType
-import com.demonwav.mcdev.platform.sponge.generation.SpongeGenerationData
 import com.demonwav.mcdev.platform.sponge.util.SpongeConstants
-import com.demonwav.mcdev.util.createVoidMethodWithParameterType
 import com.demonwav.mcdev.util.extendsOrImplements
 import com.demonwav.mcdev.util.findContainingMethod
 import com.demonwav.mcdev.util.runCatchingKtIdeaExceptions
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiAnnotationMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -49,46 +46,14 @@ class SpongeModule(facet: MinecraftFacet) : AbstractModule(facet) {
     override val type = PlatformType.SPONGE
     override val icon = PlatformAssets.SPONGE_ICON
 
+    override val eventListenerGenSupport: EventListenerGenerationSupport = SpongeEventListenerGenerationSupport()
+
     override fun isEventClassValid(eventClass: PsiClass, method: PsiMethod?) =
         "org.spongepowered.api.event.Event" == eventClass.qualifiedName
 
     override fun writeErrorMessageForEventParameter(eventClass: PsiClass, method: PsiMethod) =
         "Parameter is not an instance of org.spongepowered.api.event.Event\n" +
             "Compiling and running this listener may result in a runtime exception"
-
-    override fun generateEventListenerMethod(
-        containingClass: PsiClass,
-        chosenClass: PsiClass,
-        chosenName: String,
-        data: GenerationData?,
-    ): PsiMethod? {
-        val method = createVoidMethodWithParameterType(project, chosenName, chosenClass) ?: return null
-        val modifierList = method.modifierList
-
-        val listenerAnnotation = modifierList.addAnnotation("org.spongepowered.api.event.Listener")
-
-        val generationData = (data as SpongeGenerationData?)!!
-
-        if (!generationData.isIgnoreCanceled) {
-            val annotation = modifierList.addAnnotation("org.spongepowered.api.event.filter.IsCancelled")
-            val value = JavaPsiFacade.getElementFactory(project)
-                .createExpressionFromText("org.spongepowered.api.util.Tristate.UNDEFINED", annotation)
-
-            annotation.setDeclaredAttributeValue<PsiAnnotationMemberValue>("value", value)
-        }
-
-        if (generationData.eventOrder != "DEFAULT") {
-            val value = JavaPsiFacade.getElementFactory(project)
-                .createExpressionFromText(
-                    "org.spongepowered.api.event.Order." + generationData.eventOrder,
-                    listenerAnnotation,
-                )
-
-            listenerAnnotation.setDeclaredAttributeValue<PsiAnnotationMemberValue>("order", value)
-        }
-
-        return method
-    }
 
     override fun shouldShowPluginIcon(element: PsiElement?): Boolean {
         val identifier = element?.toUElementOfType<UIdentifier>()

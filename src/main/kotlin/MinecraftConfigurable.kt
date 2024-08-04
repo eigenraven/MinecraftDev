@@ -86,6 +86,13 @@ class MinecraftConfigurable : Configurable {
             }
         }
 
+        group(MCDevBundle("minecraft.settings.mixin")) {
+            row {
+                checkBox(MCDevBundle("minecraft.settings.mixin.mixin_class_icon"))
+                    .bindSelected(settings::mixinClassIcon)
+            }
+        }
+
         group(MCDevBundle("minecraft.settings.creator")) {
             row(MCDevBundle("minecraft.settings.creator.repos")) {}
 

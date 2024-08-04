@@ -44,6 +44,7 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.SmartList
+import org.intellij.plugins.intelliLang.inject.InjectorUtils
 
 class MEExpressionInjector : MultiHostInjector {
     companion object {
@@ -146,8 +147,7 @@ class MEExpressionInjector : MultiHostInjector {
         )
 
         if (isFrankenstein) {
-            @Suppress("DEPRECATION") // no replacement for this method
-            com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil.putInjectedFileUserData(
+            InjectorUtils.putInjectedFileUserData(
                 context,
                 MEExpressionLanguage,
                 InjectedLanguageManager.FRANKENSTEIN_INJECTION,

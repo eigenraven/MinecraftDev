@@ -20,10 +20,10 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.RequiredElement
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.util.KeyedExtensionCollector
 import com.intellij.serviceContainer.BaseKeyedLazyInstance
 import com.intellij.util.KeyedLazyInstance
@@ -42,18 +42,13 @@ interface CreatorPropertyFactory {
         fun createFromType(
             type: String,
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
+            context: CreatorContext
         ): CreatorProperty<*>? {
-            return COLLECTOR.findSingle(type)?.create(descriptor, graph, properties)
+            return COLLECTOR.findSingle(type)?.create(descriptor, context)
         }
     }
 
-    fun create(
-        descriptor: TemplatePropertyDescriptor,
-        graph: PropertyGraph,
-        properties: Map<String, CreatorProperty<*>>
-    ): CreatorProperty<*>
+    fun create(descriptor: TemplatePropertyDescriptor, context: CreatorContext): CreatorProperty<*>
 }
 
 class CreatorPropertyFactoryBean :

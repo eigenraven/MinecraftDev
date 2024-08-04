@@ -22,13 +22,12 @@ package com.demonwav.mcdev.platform.neoforge
 
 import com.demonwav.mcdev.asset.PlatformAssets
 import com.demonwav.mcdev.facet.MinecraftFacet
-import com.demonwav.mcdev.insight.generation.GenerationData
+import com.demonwav.mcdev.insight.generation.EventListenerGenerationSupport
 import com.demonwav.mcdev.inspection.IsCancelled
 import com.demonwav.mcdev.platform.AbstractModule
 import com.demonwav.mcdev.platform.PlatformType
 import com.demonwav.mcdev.platform.neoforge.util.NeoForgeConstants
 import com.demonwav.mcdev.util.SourceType
-import com.demonwav.mcdev.util.createVoidMethodWithParameterType
 import com.demonwav.mcdev.util.nullable
 import com.demonwav.mcdev.util.runCatchingKtIdeaExceptions
 import com.demonwav.mcdev.util.runWriteTaskLater
@@ -53,6 +52,8 @@ class NeoForgeModule internal constructor(facet: MinecraftFacet) : AbstractModul
     override val moduleType = NeoForgeModuleType
     override val type = PlatformType.NEOFORGE
     override val icon = PlatformAssets.NEOFORGE_ICON
+
+    override val eventListenerGenSupport: EventListenerGenerationSupport = NeoForgeEventListenerGenerationSupport()
 
     override fun init() {
         ApplicationManager.getApplication().executeOnPooledThread {
@@ -96,20 +97,6 @@ class NeoForgeModule internal constructor(facet: MinecraftFacet) : AbstractModul
     }
 
     override fun isStaticListenerSupported(method: PsiMethod) = true
-
-    override fun generateEventListenerMethod(
-        containingClass: PsiClass,
-        chosenClass: PsiClass,
-        chosenName: String,
-        data: GenerationData?,
-    ): PsiMethod? {
-        val method = createVoidMethodWithParameterType(project, chosenName, chosenClass) ?: return null
-        val modifierList = method.modifierList
-
-        modifierList.addAnnotation(NeoForgeConstants.SUBSCRIBE_EVENT)
-
-        return method
-    }
 
     override fun shouldShowPluginIcon(element: PsiElement?): Boolean {
         val identifier = element?.toUElementOfType<UIdentifier>()

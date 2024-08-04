@@ -25,6 +25,7 @@ import com.demonwav.mcdev.platform.mcp.fabricloom.FabricLoomData
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.ResolveScopeEnlarger
 import com.intellij.psi.search.GlobalSearchScope
@@ -49,11 +50,13 @@ class FabricModJsonResolveScopeEnlarger : ResolveScopeEnlarger() {
         val moduleScopes = mutableListOf<GlobalSearchScope>()
         val moduleManager = ModuleManager.getInstance(project)
         val parentPath = module.name.substringBeforeLast('.')
+        val rootType = ProjectRootManager.getInstance(project).fileIndex.getContainingSourceRootType(file)
+            ?: return null
         for ((_, sourceSets) in modSourceSets) {
             for (sourceSet in sourceSets) {
                 val childModule = moduleManager.findModuleByName("$parentPath.$sourceSet")
                 if (childModule != null) {
-                    moduleScopes.add(childModule.getModuleScope(false))
+                    moduleScopes.add(childModule.getModuleScope(rootType.isForTests))
                 }
             }
         }

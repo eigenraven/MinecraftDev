@@ -20,7 +20,7 @@
 
 package com.demonwav.mcdev.platform.mixin.expression
 
-import com.demonwav.mcdev.platform.mixin.expression.gen.MEExpressionParser
+import com.demonwav.mcdev.platform.mixin.expression.gen.parser.MEExpressionParser
 import com.demonwav.mcdev.platform.mixin.expression.gen.psi.MEExpressionTypes
 import com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionFile
 import com.demonwav.mcdev.platform.mixin.expression.psi.MEExpressionTokenSets

@@ -21,6 +21,7 @@
 package com.demonwav.mcdev.platform.mixin.reference
 
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Annotations.DESC
+import com.demonwav.mcdev.platform.mixin.util.canonicalName
 import com.demonwav.mcdev.platform.mixin.util.findClassNodeByQualifiedName
 import com.demonwav.mcdev.util.MemberReference
 import com.demonwav.mcdev.util.findModule
@@ -114,11 +115,11 @@ object DescReference : AbstractMethodReference() {
                     val argTypes = Type.getArgumentTypes(desc)
                     if (argTypes.isNotEmpty()) {
                         val argsText = if (argTypes.size == 1) {
-                            "${argTypes[0].className.replace('$', '.')}.class"
+                            "${argTypes[0].canonicalName}.class"
                         } else {
                             "{${
                             argTypes.joinToString(", ") { type ->
-                                "${type.className.replace('$', '.')}.class"
+                                "${type.canonicalName}.class"
                             }
                             }}"
                         }
@@ -134,7 +135,7 @@ object DescReference : AbstractMethodReference() {
                         descAnnotation.setDeclaredAttributeValue(
                             "ret",
                             elementFactory.createAnnotationMemberValueFromText(
-                                "${returnType.className.replace('$', '.')}.class",
+                                "${returnType.canonicalName}.class",
                                 descAnnotation,
                             ),
                         )

@@ -59,6 +59,11 @@ class FieldInjectionPoint : QualifiedInjectionPoint<PsiField>() {
         completeExtraStringAtAttribute(editor, reference, "target")
     }
 
+    override fun isShiftDiscouraged(shift: Int): Boolean {
+        // allow shift after the field access
+        return shift != 0 && shift != 1
+    }
+
     override fun getArgsKeys(at: PsiAnnotation) = ARGS_KEYS
 
     override fun getArgsValues(at: PsiAnnotation, key: String): Array<Any> =

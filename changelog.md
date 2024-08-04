@@ -1,5 +1,26 @@
 # Minecraft Development for IntelliJ
 
+## [Unreleased]
+
+### Added
+
+- Access widener completion in fabric.mod.json
+- Event listener generation for Kotlin
+- `JUMP` injection point support (without source navigation)
+- Inspection highlighting that `JUMP` usages are discouraged
+- Inspection highlighting discouraged instruction shifts
+- Inspections for when @Inject local capture is unused and for when they can be replaced with @Local
+- [#2306](https://github.com/minecraft-dev/MinecraftDev/issues/2306) Use mixin icon for mixin classes
+
+### Fixed
+
+- [#2330](https://github.com/minecraft-dev/MinecraftDev/issues/2330) Reformat created files without keeping line breaks. Fixes the Velocity main class annotation's bad formatting.
+- [#2331](https://github.com/minecraft-dev/MinecraftDev/issues/2331) Support fabric.mod.json in test resources
+- MixinExtras occasional cache desync ([#2335](https://github.com/minecraft-dev/MinecraftDev/pull/2335))
+- [#2163](https://github.com/minecraft-dev/MinecraftDev/issues/2163) `@ModifyVariable` method signature checking with `STORE`
+- [#2282](https://github.com/minecraft-dev/MinecraftDev/issues/2282) Mixin support confusion with `$` and `.` separators in class names
+- Recent NeoModDev version import errors
+
 ## [1.8.0]
 
 This release contains two major features:

@@ -20,13 +20,19 @@
 
 package com.demonwav.mcdev.toml.platform.forge
 
-import com.demonwav.mcdev.platform.forge.util.ForgeConstants
+import com.demonwav.mcdev.toml.TomlSchemaEntry
 import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationProvider
+import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.FakePsiElement
+import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.util.parentOfType
+import javax.swing.Icon
 import org.toml.lang.psi.TomlHeaderOwner
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
@@ -50,7 +56,28 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
             ?: contextElement?.parentOfType<TomlKeySegment>()
     }
 
+    override fun getDocumentationElementForLookupItem(
+        psiManager: PsiManager,
+        entry: Any?,
+        element: PsiElement?
+    ): PsiElement? {
+        if (entry !is TomlSchemaEntry) {
+            return null
+        }
+
+        val description = entry.description.joinToString("\n")
+        return if (description.isNotBlank()) {
+            TomlSchemaKeyElement(entry.key, description, psiManager)
+        } else {
+            null
+        }
+    }
+
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
+        if (element is TomlSchemaKeyElement) {
+            return element.description
+        }
+
         if (element !is TomlKeySegment || !isModsToml(originalElement)) {
             return null
         }
@@ -79,5 +106,24 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
     }
 
     private fun isModsToml(element: PsiElement?): Boolean =
-        element?.containingFile?.virtualFile?.name == ForgeConstants.MODS_TOML
+        element?.containingFile?.virtualFile?.name in ForgeTomlConstants.FILE_NAMES
+
+    private class TomlSchemaKeyElement(
+        val key: String,
+        val description: String,
+        val psiManager: PsiManager
+    ) : FakePsiElement() {
+
+        private val dummyHolder = DummyHolderFactory.createHolder(psiManager, null)
+
+        override fun getParent(): PsiElement? = dummyHolder
+
+        override fun getManager(): PsiManager? = psiManager
+
+        override fun getPresentation(): ItemPresentation? = object : ItemPresentation {
+            override fun getPresentableText(): @NlsSafe String? = key
+
+            override fun getIcon(unused: Boolean): Icon? = null
+        }
+    }
 }

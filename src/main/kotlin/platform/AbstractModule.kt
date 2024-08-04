@@ -21,7 +21,7 @@
 package com.demonwav.mcdev.platform
 
 import com.demonwav.mcdev.facet.MinecraftFacet
-import com.demonwav.mcdev.insight.generation.GenerationData
+import com.demonwav.mcdev.insight.generation.EventListenerGenerationSupport
 import com.demonwav.mcdev.inspection.IsCancelled
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiClass
@@ -44,6 +44,8 @@ abstract class AbstractModule(protected val facet: MinecraftFacet) {
     open val icon: Icon?
         get() = moduleType.icon
 
+    open val eventListenerGenSupport: EventListenerGenerationSupport? = null
+
     /**
      * By default, this method is provided in the case that a specific platform has no
      * listener handling whatsoever, or simply accepts event listeners with random
@@ -62,15 +64,6 @@ abstract class AbstractModule(protected val facet: MinecraftFacet) {
 
     open fun writeErrorMessageForEventParameter(eventClass: PsiClass, method: PsiMethod) =
         "Parameter does not extend the proper Event Class!"
-
-    open fun doPreEventGenerate(psiClass: PsiClass, data: GenerationData?) {}
-
-    open fun generateEventListenerMethod(
-        containingClass: PsiClass,
-        chosenClass: PsiClass,
-        chosenName: String,
-        data: GenerationData?,
-    ): PsiMethod? = null
 
     open fun shouldShowPluginIcon(element: PsiElement?) = false
 

@@ -20,12 +20,11 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.model.LicenseData
 import com.demonwav.mcdev.util.License
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.transform
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.EnumComboBoxModel
@@ -35,9 +34,8 @@ import java.time.ZonedDateTime
 
 class LicenseCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : CreatorProperty<LicenseData>(descriptor, graph, properties, LicenseData::class.java) {
+    context: CreatorContext
+) : CreatorProperty<LicenseData>(descriptor, context, LicenseData::class.java) {
 
     override val graphProperty: GraphProperty<LicenseData> =
         graph.property(createDefaultValue(descriptor.default))
@@ -50,7 +48,7 @@ class LicenseCreatorProperty(
     override fun deserialize(string: String): LicenseData =
         LicenseData(string, License.byId(string)?.toString() ?: string, ZonedDateTime.now().year.toString())
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             val model = EnumComboBoxModel(License::class.java)
             val licenseEnumProperty = graphProperty.transform(
@@ -67,8 +65,7 @@ class LicenseCreatorProperty(
 
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = LicenseCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = LicenseCreatorProperty(descriptor, context)
     }
 }

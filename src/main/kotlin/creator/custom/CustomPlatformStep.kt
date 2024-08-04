@@ -32,13 +32,16 @@ import com.demonwav.mcdev.creator.custom.types.ExternalCreatorProperty
 import com.demonwav.mcdev.creator.modalityState
 import com.demonwav.mcdev.util.toTypedArray
 import com.demonwav.mcdev.util.virtualFileOrError
+import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.actions.ReformatCodeProcessor
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
 import com.intellij.ide.wizard.GitNewProjectWizardData
 import com.intellij.ide.wizard.NewProjectWizardBaseData
 import com.intellij.ide.wizard.NewProjectWizardStep
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Attachment
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.getOrLogException
@@ -47,11 +50,9 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.observable.util.transform
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -76,6 +77,11 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The step to select a custom template repo.
@@ -84,6 +90,8 @@ class CustomPlatformStep(
     parent: NewProjectWizardStep,
 ) : AbstractNewProjectWizardStep(parent) {
 
+    val creatorScope = TemplateService.instance.scope("MinecraftDev Creator")
+    val creatorUiScope = TemplateService.instance.scope("MinecraftDev Creator UI")
     val templateRepos = MinecraftSettings.instance.creatorTemplateRepos
 
     val templateRepoProperty = propertyGraph.property<MinecraftSettings.TemplateRepo>(
@@ -108,16 +116,24 @@ class CustomPlatformStep(
     val templateProvidersText2Property = propertyGraph.property("")
     lateinit var templateProvidersProcessIcon: Cell<AsyncProcessIcon>
 
-    val templateLoadingProperty = propertyGraph.property<Boolean>(true)
+    val templateLoadingProperty = propertyGraph.property<Boolean>(false)
     val templateLoadingTextProperty = propertyGraph.property<String>("")
     val templateLoadingText2Property = propertyGraph.property<String>("")
     lateinit var templatePropertiesProcessIcon: Cell<AsyncProcessIcon>
     lateinit var noTemplatesAvailable: Cell<JLabel>
-    var templateLoadingIndicator: ProgressIndicator? = null
+    var templateLoadingJob: Job? = null
 
     private var hasTemplateErrors: Boolean = true
 
     private var properties = mutableMapOf<String, CreatorProperty<*>>()
+    private var creatorContext = CreatorContext(propertyGraph, properties, context, creatorScope)
+
+    init {
+        Disposer.register(context.disposable) {
+            creatorScope.cancel("The creator got disposed")
+            creatorUiScope.cancel("The creator got disposed")
+        }
+    }
 
     override fun setupUI(builder: Panel) {
         lateinit var templatePropertyPlaceholder: Placeholder
@@ -130,16 +146,12 @@ class CustomPlatformStep(
         builder.row {
             templateProvidersProcessIcon =
                 cell(AsyncProcessIcon("TemplateProviders init"))
-                    .visibleIf(templateProvidersLoadingProperty)
             label(MCDevBundle("creator.step.generic.init_template_providers.message"))
-                .visibleIf(templateProvidersLoadingProperty)
             label("")
                 .bindText(templateProvidersTextProperty)
-                .visibleIf(templateProvidersLoadingProperty)
             label("")
                 .bindText(templateProvidersText2Property)
-                .visibleIf(templateProvidersLoadingProperty)
-        }
+        }.visibleIf(templateProvidersLoadingProperty)
 
         templateRepoProperty.afterChange { templateRepo ->
             templatePropertyPlaceholder.component = null
@@ -217,100 +229,69 @@ class CustomPlatformStep(
     private fun initTemplates() {
         selectedTemplate = EmptyLoadedTemplate
 
-        val task = object : Task.Backgroundable(
-            context.project,
-            MCDevBundle("creator.step.generic.init_template_providers.message"),
-            true,
-            ALWAYS_BACKGROUND,
-        ) {
-
-            override fun run(indicator: ProgressIndicator) {
-                if (project?.isDisposed == true) {
-                    return
-                }
-
-                application.invokeAndWait({
-                    ProgressManager.checkCanceled()
-                    templateProvidersLoadingProperty.set(true)
-                    VirtualFileManager.getInstance().syncRefresh()
-                }, context.modalityState)
-
-                for ((providerKey, repos) in templateRepos.groupBy { it.provider }) {
-                    ProgressManager.checkCanceled()
-                    val provider = TemplateProvider.get(providerKey)
-                        ?: continue
-                    indicator.text = provider.label
-                    runCatching { provider.init(indicator, repos) }
-                        .getOrLogException(logger<CustomPlatformStep>())
-                }
-
-                ProgressManager.checkCanceled()
-                application.invokeAndWait({
-                    ProgressManager.checkCanceled()
-                    templateProvidersLoadingProperty.set(false)
-                    // Force refresh to trigger template loading
-                    templateRepoProperty.set(templateRepo)
-                }, context.modalityState)
-            }
-        }
+        templateRepoProperty.set(templateRepos.first())
 
         val indicator = CreatorProgressIndicator(
             templateProvidersLoadingProperty,
             templateProvidersTextProperty,
             templateProvidersText2Property
         )
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator)
-    }
 
-    private fun loadTemplatesInBackground(provider: () -> Collection<LoadedTemplate>) {
-        selectedTemplate = EmptyLoadedTemplate
+        templateProvidersTextProperty.set(MCDevBundle("creator.step.generic.init_template_providers.message"))
+        templateProvidersLoadingProperty.set(true)
 
-        val task = object : Task.Backgroundable(
-            context.project,
-            MCDevBundle("creator.step.generic.load_template.message"),
-            true,
-            ALWAYS_BACKGROUND,
-        ) {
+        val dialogCoroutineContext = context.modalityState.asContextElement()
+        val uiContext = dialogCoroutineContext + Dispatchers.EDT
+        creatorUiScope.launch(dialogCoroutineContext) {
+            withContext(uiContext) {
+                application.runWriteAction { VirtualFileManager.getInstance().syncRefresh() }
+            }
 
-            override fun run(indicator: ProgressIndicator) {
-                if (project?.isDisposed == true) {
-                    return
-                }
-
-                application.invokeAndWait({
-                    ProgressManager.checkCanceled()
-                    templateLoadingProperty.set(true)
-                    VirtualFileManager.getInstance().syncRefresh()
-                }, context.modalityState)
-
-                ProgressManager.checkCanceled()
-                val newTemplates = runCatching { provider() }
+            for ((providerKey, repos) in templateRepos.groupBy { it.provider }) {
+                val provider = TemplateProvider.get(providerKey)
+                    ?: continue
+                indicator.text = provider.label
+                runCatching { provider.init(indicator, repos) }
                     .getOrLogException(logger<CustomPlatformStep>())
-                    ?: emptyList()
+            }
 
-                ProgressManager.checkCanceled()
-                application.invokeAndWait({
-                    ProgressManager.checkCanceled()
-                    templateLoadingProperty.set(false)
-                    noTemplatesAvailable.visible(newTemplates.isEmpty())
-                    availableTemplates = newTemplates
-                }, context.modalityState)
+            withContext(uiContext) {
+                templateProvidersLoadingProperty.set(false)
+                // Force refresh to trigger template loading
+                templateRepoProperty.set(templateRepo)
             }
         }
+    }
 
-        templateLoadingIndicator?.cancel()
+    private fun loadTemplatesInBackground(provider: suspend () -> Collection<LoadedTemplate>) {
+        selectedTemplate = EmptyLoadedTemplate
 
-        val indicator = CreatorProgressIndicator(
-            templateLoadingProperty,
-            templateLoadingTextProperty,
-            templateLoadingText2Property
-        )
-        templateLoadingIndicator = indicator
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator)
+        templateLoadingTextProperty.set(MCDevBundle("creator.step.generic.load_template.message"))
+        templateLoadingProperty.set(true)
+
+        val dialogCoroutineContext = context.modalityState.asContextElement()
+        val uiContext = dialogCoroutineContext + Dispatchers.EDT
+        templateLoadingJob?.cancel("Another template has been selected")
+        templateLoadingJob = creatorUiScope.launch(dialogCoroutineContext) {
+            withContext(uiContext) {
+                application.runWriteAction { VirtualFileManager.getInstance().syncRefresh() }
+            }
+
+            val newTemplates = runCatching { provider() }
+                .getOrLogException(logger<CustomPlatformStep>())
+                ?: emptyList()
+
+            withContext(uiContext) {
+                templateLoadingProperty.set(false)
+                noTemplatesAvailable.visible(newTemplates.isEmpty())
+                availableTemplates = newTemplates
+            }
+        }
     }
 
     private fun createOptionsPanelInBackground(template: LoadedTemplate, placeholder: Placeholder) {
         properties = mutableMapOf()
+        creatorContext = creatorContext.copy(properties = properties)
 
         if (!template.isValid) {
             return
@@ -320,8 +301,7 @@ class CustomPlatformStep(
             ?: return thisLogger().error("Could not find wizard base data")
 
         properties["PROJECT_NAME"] = ExternalCreatorProperty(
-            graph = propertyGraph,
-            properties = properties,
+            context = creatorContext,
             graphProperty = baseData.nameProperty,
             valueType = String::class.java
         )
@@ -421,7 +401,7 @@ class CustomPlatformStep(
             reporter.fatal("Duplicate property name ${descriptor.name}")
         }
 
-        val prop = CreatorPropertyFactory.createFromType(descriptor.type, descriptor, propertyGraph, properties)
+        val prop = CreatorPropertyFactory.createFromType(descriptor.type, descriptor, creatorContext)
         if (prop == null) {
             reporter.fatal("Unknown template property type ${descriptor.type}")
         }
@@ -434,7 +414,7 @@ class CustomPlatformStep(
             return null
         }
 
-        val factory = Consumer<Panel> { panel -> prop.buildUi(panel, context) }
+        val factory = Consumer<Panel> { panel -> prop.buildUi(panel) }
         val order = descriptor.order ?: 0
         return factory to order
     }
@@ -554,7 +534,18 @@ class CustomPlatformStep(
         val psiFiles = files.asSequence()
             .filter { (desc, _) -> desc.reformat != false }
             .mapNotNull { (_, file) -> psiManager.findFile(file) }
-        ReformatCodeProcessor(project, psiFiles.toTypedArray(), null, false).run()
+
+        val processor = ReformatCodeProcessor(project, psiFiles.toTypedArray(), null, false)
+        psiFiles.forEach(processor::setDoNotKeepLineBreaks)
+
+        val insightSettings = CodeInsightSettings.getInstance()
+        val oldSecondReformat = insightSettings.ENABLE_SECOND_REFORMAT
+        insightSettings.ENABLE_SECOND_REFORMAT = true
+        try {
+            processor.run()
+        } finally {
+            insightSettings.ENABLE_SECOND_REFORMAT = oldSecondReformat
+        }
     }
 
     private fun openFilesInEditor(

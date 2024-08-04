@@ -22,7 +22,7 @@ package com.demonwav.mcdev.platform.forge
 
 import com.demonwav.mcdev.asset.PlatformAssets
 import com.demonwav.mcdev.facet.MinecraftFacet
-import com.demonwav.mcdev.insight.generation.GenerationData
+import com.demonwav.mcdev.insight.generation.EventListenerGenerationSupport
 import com.demonwav.mcdev.inspection.IsCancelled
 import com.demonwav.mcdev.platform.AbstractModule
 import com.demonwav.mcdev.platform.PlatformType
@@ -31,8 +31,6 @@ import com.demonwav.mcdev.platform.forge.util.ForgeConstants
 import com.demonwav.mcdev.platform.mcp.McpModuleSettings
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.SourceType
-import com.demonwav.mcdev.util.createVoidMethodWithParameterType
-import com.demonwav.mcdev.util.extendsOrImplements
 import com.demonwav.mcdev.util.nullable
 import com.demonwav.mcdev.util.runCatchingKtIdeaExceptions
 import com.demonwav.mcdev.util.runWriteTaskLater
@@ -61,6 +59,8 @@ class ForgeModule internal constructor(facet: MinecraftFacet) : AbstractModule(f
     override val moduleType = ForgeModuleType
     override val type = PlatformType.FORGE
     override val icon = PlatformAssets.FORGE_ICON
+
+    override val eventListenerGenSupport: EventListenerGenerationSupport = ForgeEventListenerGenerationSupport()
 
     override fun init() {
         ApplicationManager.getApplication().executeOnPooledThread {
@@ -157,32 +157,6 @@ class ForgeModule internal constructor(facet: MinecraftFacet) : AbstractModule(f
     }
 
     override fun isStaticListenerSupported(method: PsiMethod) = true
-
-    override fun generateEventListenerMethod(
-        containingClass: PsiClass,
-        chosenClass: PsiClass,
-        chosenName: String,
-        data: GenerationData?,
-    ): PsiMethod? {
-        val isFmlEvent = chosenClass.extendsOrImplements(ForgeConstants.FML_EVENT)
-
-        val method = createVoidMethodWithParameterType(project, chosenName, chosenClass) ?: return null
-        val modifierList = method.modifierList
-
-        if (isFmlEvent) {
-            modifierList.addAnnotation(ForgeConstants.EVENT_HANDLER_ANNOTATION)
-        } else {
-            val mcVersion = McpModuleSettings.getInstance(module).state.minecraftVersion
-                ?.let { SemanticVersion.parse(it) }
-            if (mcVersion != null && mcVersion >= ForgeModuleType.FG3_MC_VERSION) {
-                modifierList.addAnnotation(ForgeConstants.EVENTBUS_SUBSCRIBE_EVENT_ANNOTATION)
-            } else {
-                modifierList.addAnnotation(ForgeConstants.SUBSCRIBE_EVENT_ANNOTATION)
-            }
-        }
-
-        return method
-    }
 
     override fun shouldShowPluginIcon(element: PsiElement?): Boolean {
         val identifier = element?.toUElementOfType<UIdentifier>()

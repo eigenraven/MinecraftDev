@@ -20,6 +20,7 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.PropertyDerivation
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
@@ -27,8 +28,6 @@ import com.demonwav.mcdev.creator.custom.derivation.ExtractVersionMajorMinorProp
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
 import com.demonwav.mcdev.util.SemanticVersion
-import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.dsl.builder.COLUMNS_SHORT
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindText
@@ -36,9 +35,8 @@ import com.intellij.ui.dsl.builder.columns
 
 open class SemanticVersionCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : SimpleCreatorProperty<SemanticVersion>(descriptor, graph, properties, SemanticVersion::class.java) {
+    context: CreatorContext
+) : SimpleCreatorProperty<SemanticVersion>(descriptor, context, SemanticVersion::class.java) {
 
     override fun createDefaultValue(raw: Any?): SemanticVersion =
         SemanticVersion.tryParse(raw as? String ?: "") ?: SemanticVersion(emptyList())
@@ -48,7 +46,7 @@ open class SemanticVersionCreatorProperty(
     override fun deserialize(string: String): SemanticVersion =
         SemanticVersion.tryParse(string) ?: SemanticVersion(emptyList())
 
-    override fun buildSimpleUi(panel: Panel, context: WizardContext) {
+    override fun buildSimpleUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             this.textField().bindText(this@SemanticVersionCreatorProperty.toStringProperty(graphProperty))
                 .columns(COLUMNS_SHORT)
@@ -79,8 +77,7 @@ open class SemanticVersionCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = SemanticVersionCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = SemanticVersionCreatorProperty(descriptor, context)
     }
 }

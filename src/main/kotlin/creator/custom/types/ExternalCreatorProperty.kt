@@ -20,20 +20,18 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.dsl.builder.Panel
 
 class ExternalCreatorProperty<T>(
     descriptor: TemplatePropertyDescriptor = TemplatePropertyDescriptor("", "", "", default = ""),
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>,
+    context: CreatorContext,
     override val graphProperty: GraphProperty<T>,
     valueType: Class<T>,
-) : CreatorProperty<T>(descriptor, graph, properties, valueType) {
+) : CreatorProperty<T>(descriptor, context, valueType) {
 
     override fun setupProperty(reporter: TemplateValidationReporter) = Unit
 
@@ -46,5 +44,5 @@ class ExternalCreatorProperty<T>(
     override fun deserialize(string: String): T =
         throw UnsupportedOperationException("Unsupported for external properties")
 
-    override fun buildUi(panel: Panel, context: WizardContext) = Unit
+    override fun buildUi(panel: Panel) = Unit
 }

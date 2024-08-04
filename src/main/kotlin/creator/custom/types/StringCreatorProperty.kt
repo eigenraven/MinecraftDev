@@ -21,15 +21,14 @@
 package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.PropertyDerivation
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.ReplacePropertyDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindText
@@ -38,9 +37,8 @@ import com.intellij.ui.dsl.builder.textValidation
 
 class StringCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : SimpleCreatorProperty<String>(descriptor, graph, properties, String::class.java) {
+    context: CreatorContext
+) : SimpleCreatorProperty<String>(descriptor, context, String::class.java) {
 
     private var validationRegex: Regex? = null
 
@@ -82,7 +80,7 @@ class StringCreatorProperty(
         else -> null
     }
 
-    override fun buildSimpleUi(panel: Panel, context: WizardContext) {
+    override fun buildSimpleUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             val textField = textField().bindText(this@StringCreatorProperty.toStringProperty(graphProperty))
                 .columns(COLUMNS_LARGE)
@@ -96,8 +94,7 @@ class StringCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = StringCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = StringCreatorProperty(descriptor, context)
     }
 }

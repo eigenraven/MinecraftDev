@@ -20,10 +20,9 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.model.StringList
-import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindText
@@ -31,9 +30,8 @@ import com.intellij.ui.dsl.builder.columns
 
 class InlineStringListCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : SimpleCreatorProperty<StringList>(descriptor, graph, properties, StringList::class.java) {
+    context: CreatorContext
+) : SimpleCreatorProperty<StringList>(descriptor, context, StringList::class.java) {
 
     override fun createDefaultValue(raw: Any?): StringList = deserialize(raw as? String ?: "")
 
@@ -44,7 +42,7 @@ class InlineStringListCreatorProperty(
         .filter(String::isNotBlank)
         .run(::StringList)
 
-    override fun buildSimpleUi(panel: Panel, context: WizardContext) {
+    override fun buildSimpleUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             this.textField().bindText(this@InlineStringListCreatorProperty.toStringProperty(graphProperty))
                 .columns(COLUMNS_LARGE)
@@ -55,8 +53,7 @@ class InlineStringListCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = InlineStringListCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = InlineStringListCreatorProperty(descriptor, context)
     }
 }

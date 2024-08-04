@@ -92,6 +92,10 @@
             <with attribute="implementation" implements="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.InjectionPoint"/>
         </extensionPoint>
         <extensionPoint name="injectionPointAnnotation" beanClass="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.InjectionPointAnnotation" dynamic="true" />
+
+        <extensionPoint name="eventGenHelper" beanClass="com.intellij.lang.LanguageExtensionPoint" dynamic="true">
+            <with attribute="implementationClass" implements="com.demonwav.mcdev.insight.generation.EventGenHelper"/>
+        </extensionPoint>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.demonwav.minecraft-dev">
@@ -195,9 +199,12 @@
         <injectionPoint atCode="LOAD" implementation="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.LoadInjectionPoint" />
         <injectionPoint atCode="STORE" implementation="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.StoreInjectionPoint" />
         <injectionPoint atCode="CONSTANT" implementation="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.ConstantInjectionPoint" />
+        <injectionPoint atCode="JUMP" implementation="com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.JumpInjectionPoint" />
         <injectionPoint atCode="MIXINEXTRAS:EXPRESSION" implementation="com.demonwav.mcdev.platform.mixin.handlers.mixinextras.ExpressionInjectionPoint" />
 
         <injectionPointAnnotation annotation="org.spongepowered.asm.mixin.injection.Constant" atCode="CONSTANT" />
+
+        <eventGenHelper language="JAVA" implementationClass="com.demonwav.mcdev.insight.generation.JavaEventGenHelper" />
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -526,6 +533,8 @@
         <debuggerClassFilterProvider implementation="com.demonwav.mcdev.platform.mixin.debug.MixinDebuggerClassFilterProvider"/>
 
         <library.presentationProvider implementation="com.demonwav.mcdev.platform.mixin.framework.MixinPresentationProvider" />
+
+        <iconLayerProvider implementation="com.demonwav.mcdev.platform.mixin.framework.MixinIconProvider" />
 
         <!--region MixinExtras Expression Language-->
         <fileType name="MixinExtras Expression File"
@@ -1017,6 +1026,46 @@
                          level="WARNING"
                          hasStaticDescription="true"
                          implementationClass="com.demonwav.mcdev.platform.mixin.inspection.injector.CtorHeadPostInitInspection"/>
+        <localInspection displayName="Usage of discouraged injection point"
+                         shortName="DiscouragedInjectionPoint"
+                         groupName="Mixin"
+                         language="JAVA"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mixin.inspection.injector.DiscouragedInjectionPointInspection"/>
+        <localInspection displayName="Usage of discouraged shifting in injection point"
+                         shortName="DiscouragedShift"
+                         groupName="Mixin"
+                         language="JAVA"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mixin.inspection.injector.DiscouragedShiftInspection"/>
+        <localInspection displayName="Usage of LocalCapture.CAPTURE_FAILEXCEPTION"
+                         shortName="LocalCaptureFailException"
+                         groupName="Mixin"
+                         language="JAVA"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mixin.inspection.injector.CaptureFailExceptionInspection"/>
+        <localInspection displayName="Unused @Inject local capture"
+                         shortName="UnusedInjectLocalCapture"
+                         groupName="Mixin"
+                         language="JAVA"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mixin.inspection.injector.UnusedLocalCaptureInspection"/>
+        <localInspection displayName="@Inject local capture can be replaced with @Local"
+                         shortName="InjectLocalCaptureCanBeReplacedWithLocal"
+                         groupName="Mixin"
+                         language="JAVA"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="true"
+                         implementationClass="com.demonwav.mcdev.platform.mixin.inspection.mixinextras.InjectLocalCaptureReplaceWithLocalInspection"/>
         <!--endregion-->
 
         <!--region Overwrite Inspections -->

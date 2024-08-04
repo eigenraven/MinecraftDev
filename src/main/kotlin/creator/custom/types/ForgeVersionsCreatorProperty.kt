@@ -22,35 +22,30 @@ package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplateEvaluator
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.model.ForgeVersions
 import com.demonwav.mcdev.platform.forge.version.ForgeVersion
 import com.demonwav.mcdev.util.SemanticVersion
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.observable.util.transform
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.bindItem
-import com.intellij.util.application
 import com.intellij.util.ui.AsyncProcessIcon
 import javax.swing.DefaultComboBoxModel
-import kotlin.collections.Map
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ForgeVersionsCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : CreatorProperty<ForgeVersions>(descriptor, graph, properties, ForgeVersions::class.java) {
+    context: CreatorContext
+) : CreatorProperty<ForgeVersions>(descriptor, context, ForgeVersions::class.java) {
 
     private val emptyVersion = SemanticVersion.release()
 
@@ -92,7 +87,7 @@ class ForgeVersionsCreatorProperty(
         )
     }
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         panel.row("") {
             cell(AsyncProcessIcon("ForgeVersions download"))
             label(MCDevBundle("creator.ui.versions_download.label"))
@@ -151,7 +146,7 @@ class ForgeVersionsCreatorProperty(
             }
         }
 
-        downloadVersions {
+        downloadVersions(context) {
             reloadMinecraftVersions()
 
             loadingVersionsProperty.set(false)
@@ -189,21 +184,20 @@ class ForgeVersionsCreatorProperty(
 
         private var forgeVersion: ForgeVersion? = null
 
-        private fun downloadVersions(uiCallback: () -> Unit) {
+        private fun downloadVersions(context: CreatorContext, uiCallback: () -> Unit) {
             if (hasDownloadedVersions) {
                 uiCallback()
                 return
             }
 
-            application.executeOnPooledThread {
-                runBlocking {
-                    forgeVersion = ForgeVersion.downloadData()
+            val scope = context.childScope("ForgeVersionsCreatorProperty")
+            scope.launch(Dispatchers.IO) {
+                forgeVersion = ForgeVersion.downloadData()
 
-                    hasDownloadedVersions = true
+                hasDownloadedVersions = true
 
-                    withContext(Dispatchers.Swing) {
-                        uiCallback()
-                    }
+                withContext(context.uiContext) {
+                    uiCallback()
                 }
             }
         }
@@ -212,8 +206,7 @@ class ForgeVersionsCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = ForgeVersionsCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = ForgeVersionsCreatorProperty(descriptor, context)
     }
 }

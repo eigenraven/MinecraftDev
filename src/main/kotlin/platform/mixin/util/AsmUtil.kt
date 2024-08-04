@@ -146,16 +146,17 @@ fun Type.toPsiType(elementFactory: PsiElementFactory, context: PsiElement? = nul
     if (this == ExpressionASMUtils.INTLIKE_TYPE) {
         return PsiTypes.intType()
     }
-    val javaClassName = className.replace("(\\$)(\\D)".toRegex()) { "." + it.groupValues[2] }
-    return elementFactory.createTypeFromText(javaClassName, context)
+    return elementFactory.createTypeFromText(canonicalName, context)
 }
 
 val Type.canonicalName get() = computeCanonicalName(this)
 
+private val DOLLAR_TO_DOT_REGEX = "\\$(?!\\d)".toRegex()
+
 private fun computeCanonicalName(type: Type): String {
     return when (type.sort) {
         Type.ARRAY -> computeCanonicalName(type.elementType) + "[]".repeat(type.dimensions)
-        Type.OBJECT -> type.className.replace('$', '.')
+        Type.OBJECT -> type.className.replace(DOLLAR_TO_DOT_REGEX, ".")
         else -> type.className
     }
 }
@@ -817,7 +818,7 @@ fun MethodNode.findOrConstructSourceMethod(
             }
             append(name)
         } else {
-            append(returnType.className.replace('$', '.'))
+            append(returnType.canonicalName)
             append(' ')
             append(this@findOrConstructSourceMethod.name.toJavaIdentifier())
         }
@@ -827,7 +828,7 @@ fun MethodNode.findOrConstructSourceMethod(
             if (index != 0) {
                 append(", ")
             }
-            var typeName = param.className.replace('$', '.')
+            var typeName = param.canonicalName
             if (index == params.size - 1 && hasAccess(Opcodes.ACC_VARARGS) && typeName.endsWith("[]")) {
                 typeName = typeName.replaceRange(typeName.length - 2, typeName.length, "...")
             }

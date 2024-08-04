@@ -22,12 +22,11 @@ package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.model.BuildSystemCoordinates
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.transform
 import com.intellij.openapi.ui.validation.CHECK_ARTIFACT_ID
 import com.intellij.openapi.ui.validation.CHECK_GROUP_ID
@@ -46,9 +45,8 @@ private val nonExampleValidation = validationErrorIf<String>(MCDevBundle("creato
 
 class BuildSystemCoordinatesCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : CreatorProperty<BuildSystemCoordinates>(descriptor, graph, properties, BuildSystemCoordinates::class.java) {
+    context: CreatorContext
+) : CreatorProperty<BuildSystemCoordinates>(descriptor, context, BuildSystemCoordinates::class.java) {
 
     private val default = createDefaultValue(descriptor.default)
 
@@ -99,7 +97,7 @@ class BuildSystemCoordinatesCreatorProperty(
         }
     }
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         panel.collapsibleGroup(MCDevBundle("creator.ui.group.title")) {
             this.row(MCDevBundle("creator.ui.group.group_id")) {
                 this.textField()
@@ -128,8 +126,7 @@ class BuildSystemCoordinatesCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = BuildSystemCoordinatesCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = BuildSystemCoordinatesCreatorProperty(descriptor, context)
     }
 }

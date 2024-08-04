@@ -67,6 +67,24 @@ abstract class AbstractLoadInjectionPoint(private val store: Boolean) : Injectio
         return LocalInfo.fromAnnotation(localType, modifyVariable)
     }
 
+    override fun isShiftDiscouraged(shift: Int): Boolean {
+        if (shift == 0) {
+            return false
+        }
+        if (store) {
+            // allow shift before the STORE
+            if (shift == -1) {
+                return false
+            }
+        } else {
+            // allow shift after the LOAD
+            if (shift == 1) {
+                return false
+            }
+        }
+        return true
+    }
+
     override fun createNavigationVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
@@ -103,15 +121,15 @@ abstract class AbstractLoadInjectionPoint(private val store: Boolean) : Injectio
         val project = at.project
         val ordinals = mutableMapOf<String, Int>()
         collectVisitor.addResultFilter("ordinal") { result, method ->
-            result.originalInsn as? VarInsnNode
-                ?: throw IllegalStateException("AbstractLoadInjectionPoint returned non-var insn")
-            val localInsn = if (store) { result.originalInsn.next } else { result.originalInsn }
+            // store returns the instruction after the variable
+            val varInsn = (if (store) result.originalInsn.previous ?: result.originalInsn else result.originalInsn)
+                as? VarInsnNode ?: throw IllegalStateException("AbstractLoadInjectionPoint returned non-var insn")
             val localType = AsmDfaUtil.getLocalVariableType(
                 project,
                 targetClass,
                 method,
-                localInsn,
-                result.originalInsn.`var`,
+                result.originalInsn,
+                varInsn.`var`,
             ) ?: return@addResultFilter true
             val desc = localType.descriptor
             val ord = ordinals[desc] ?: 0
@@ -285,13 +303,13 @@ abstract class AbstractLoadInjectionPoint(private val store: Boolean) : Injectio
                     }
                 }
 
-                val localLocation = if (store) insn.next ?: insn else insn
-                val locals = info.getLocals(module, targetClass, methodNode, localLocation) ?: continue
+                val shiftedInsn = if (store) insn.next ?: insn else insn
+                val locals = info.getLocals(module, targetClass, methodNode, shiftedInsn) ?: continue
 
                 val elementFactory = JavaPsiFacade.getElementFactory(module.project)
 
                 for (result in info.matchLocals(locals, mode)) {
-                    addResult(insn, elementFactory.createExpressionFromText(result.name, null))
+                    addResult(shiftedInsn, elementFactory.createExpressionFromText(result.name, null))
                 }
             }
         }

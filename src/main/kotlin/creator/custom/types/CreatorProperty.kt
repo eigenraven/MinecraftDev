@@ -20,6 +20,7 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.PropertyDerivation
 import com.demonwav.mcdev.creator.custom.TemplateEvaluator
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
@@ -38,10 +39,18 @@ import com.intellij.ui.dsl.builder.Row
 
 abstract class CreatorProperty<T>(
     val descriptor: TemplatePropertyDescriptor,
-    val graph: PropertyGraph,
-    protected val properties: Map<String, CreatorProperty<*>>,
+    protected val context: CreatorContext,
     val valueType: Class<T>
 ) {
+    protected val graph: PropertyGraph
+        get() = context.graph
+
+    protected val properties
+        get() = context.properties
+
+    protected val wizardContext: WizardContext
+        get() = context.wizardContext
+
     private var derivation: PreparedDerivation? = null
     private lateinit var visibleProperty: GraphProperty<Boolean>
 
@@ -95,7 +104,7 @@ abstract class CreatorProperty<T>(
 
     protected open fun convertSelectDerivationResult(original: Any?): Any? = original
 
-    abstract fun buildUi(panel: Panel, context: WizardContext)
+    abstract fun buildUi(panel: Panel)
 
     /**
      * Prepares everything this property needs, like calling [GraphProperty]'s [GraphProperty.afterChange] and

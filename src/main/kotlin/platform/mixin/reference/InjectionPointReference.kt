@@ -87,6 +87,9 @@ object InjectionPointReference : ReferenceResolver(), MixinReference {
     override fun collectVariants(context: PsiElement): Array<Any> {
         return (
             getAllAtCodes(context.project).keys.asSequence()
+                .filter {
+                    InjectionPoint.byAtCode(it)?.discouragedMessage == null
+                }
                 .map {
                     PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create(it).completeInjectionPoint(context),

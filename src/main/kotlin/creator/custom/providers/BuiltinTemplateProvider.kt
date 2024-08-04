@@ -45,7 +45,7 @@ class BuiltinTemplateProvider : RemoteTemplateProvider() {
 
     override val hasConfig: Boolean = true
 
-    override fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) {
+    override suspend fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) {
         if (repoUpdated || repos.none { it.data.toBoolean() }) {
             // Auto update is disabled
             return
@@ -56,7 +56,7 @@ class BuiltinTemplateProvider : RemoteTemplateProvider() {
         }
     }
 
-    override fun loadTemplates(
+    override suspend fun loadTemplates(
         context: WizardContext,
         repo: MinecraftSettings.TemplateRepo
     ): Collection<LoadedTemplate> {

@@ -22,10 +22,9 @@ package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindItem
@@ -35,10 +34,9 @@ import javax.swing.JList
 
 abstract class SimpleCreatorProperty<T>(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>,
+    context: CreatorContext,
     valueType: Class<T>
-) : CreatorProperty<T>(descriptor, graph, properties, valueType) {
+) : CreatorProperty<T>(descriptor, context, valueType) {
 
     private val options: Map<T, String>? = makeOptionsList()
 
@@ -80,7 +78,7 @@ abstract class SimpleCreatorProperty<T>(
 
     override val graphProperty: GraphProperty<T> by lazy { graph.property(defaultValue) }
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         if (isDropdown) {
             if (graphProperty.get() !in options!!.keys) {
                 graphProperty.set(defaultValue)
@@ -112,11 +110,11 @@ abstract class SimpleCreatorProperty<T>(
                 }
             }.propertyVisibility()
         } else {
-            buildSimpleUi(panel, context)
+            buildSimpleUi(panel)
         }
     }
 
-    abstract fun buildSimpleUi(panel: Panel, context: WizardContext)
+    abstract fun buildSimpleUi(panel: Panel)
 
     private inner class DropdownAutoRenderer : DefaultListCellRenderer() {
 

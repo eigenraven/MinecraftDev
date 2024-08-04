@@ -22,31 +22,27 @@ package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.creator.ParchmentVersion
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.model.HasMinecraftVersion
 import com.demonwav.mcdev.creator.custom.model.ParchmentVersions
 import com.demonwav.mcdev.util.SemanticVersion
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.transform
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
-import com.intellij.util.application
 import javax.swing.DefaultComboBoxModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ParchmentCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : CreatorProperty<ParchmentVersions>(descriptor, graph, properties, ParchmentVersions::class.java) {
+    context: CreatorContext
+) : CreatorProperty<ParchmentVersions>(descriptor, context, ParchmentVersions::class.java) {
 
     private val emptyVersion = SemanticVersion.release()
 
@@ -92,7 +88,7 @@ class ParchmentCreatorProperty(
         )
     }
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             checkBox("Use Parchment")
                 .bindSelected(useParchmentProperty)
@@ -169,7 +165,7 @@ class ParchmentCreatorProperty(
             refreshVersionsLists()
         }
 
-        downloadVersions {
+        downloadVersions(context) {
             refreshVersionsLists()
 
             val minecraftVersion = getPlatformMinecraftVersion()
@@ -250,22 +246,21 @@ class ParchmentCreatorProperty(
 
         private var allParchmentVersions: List<ParchmentVersion>? = null
 
-        private fun downloadVersions(uiCallback: () -> Unit) {
+        private fun downloadVersions(context: CreatorContext, uiCallback: () -> Unit) {
             if (hasDownloadedVersions) {
                 uiCallback()
                 return
             }
 
-            application.executeOnPooledThread {
-                runBlocking {
-                    allParchmentVersions = ParchmentVersion.downloadData()
-                        .sortedByDescending(ParchmentVersion::parchmentVersion)
+            val scope = context.childScope("ParchmentCreatorProperty")
+            scope.launch(Dispatchers.IO) {
+                allParchmentVersions = ParchmentVersion.downloadData()
+                    .sortedByDescending(ParchmentVersion::parchmentVersion)
 
-                    hasDownloadedVersions = true
+                hasDownloadedVersions = true
 
-                    withContext(Dispatchers.Swing) {
-                        uiCallback()
-                    }
+                withContext(context.uiContext) {
+                    uiCallback()
                 }
             }
         }
@@ -274,8 +269,7 @@ class ParchmentCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = ParchmentCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = ParchmentCreatorProperty(descriptor, context)
     }
 }

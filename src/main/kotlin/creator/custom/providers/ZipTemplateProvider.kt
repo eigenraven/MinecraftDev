@@ -45,7 +45,7 @@ class ZipTemplateProvider : TemplateProvider {
 
     override val hasConfig: Boolean = true
 
-    override fun loadTemplates(
+    override suspend fun loadTemplates(
         context: WizardContext,
         repo: MinecraftSettings.TemplateRepo
     ): Collection<LoadedTemplate> {

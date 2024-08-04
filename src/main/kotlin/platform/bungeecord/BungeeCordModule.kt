@@ -21,19 +21,15 @@
 package com.demonwav.mcdev.platform.bungeecord
 
 import com.demonwav.mcdev.facet.MinecraftFacet
-import com.demonwav.mcdev.insight.generation.GenerationData
+import com.demonwav.mcdev.insight.generation.EventListenerGenerationSupport
 import com.demonwav.mcdev.platform.AbstractModule
 import com.demonwav.mcdev.platform.AbstractModuleType
 import com.demonwav.mcdev.platform.PlatformType
-import com.demonwav.mcdev.platform.bukkit.BukkitModule
 import com.demonwav.mcdev.platform.bukkit.BukkitModuleType
 import com.demonwav.mcdev.platform.bukkit.PaperModuleType
 import com.demonwav.mcdev.platform.bukkit.SpigotModuleType
-import com.demonwav.mcdev.platform.bungeecord.generation.BungeeCordGenerationData
 import com.demonwav.mcdev.platform.bungeecord.util.BungeeCordConstants
 import com.demonwav.mcdev.util.SourceType
-import com.demonwav.mcdev.util.addImplements
-import com.demonwav.mcdev.util.extendsOrImplements
 import com.demonwav.mcdev.util.nullable
 import com.demonwav.mcdev.util.runCatchingKtIdeaExceptions
 import com.intellij.lang.jvm.JvmModifier
@@ -65,54 +61,14 @@ class BungeeCordModule<out T : AbstractModuleType<*>>(facet: MinecraftFacet, typ
 
     override val moduleType: T = type
 
+    override val eventListenerGenSupport: EventListenerGenerationSupport? = BungeeCordEventListenerGenerationSupport()
+
     override fun isEventClassValid(eventClass: PsiClass, method: PsiMethod?) =
         BungeeCordConstants.EVENT_CLASS == eventClass.qualifiedName
 
     override fun writeErrorMessageForEventParameter(eventClass: PsiClass, method: PsiMethod) =
         "Parameter is not a subclass of net.md_5.bungee.api.plugin.Event\n" +
             "Compiling and running this listener may result in a runtime exception"
-
-    override fun doPreEventGenerate(psiClass: PsiClass, data: GenerationData?) {
-        val bungeeCordListenerClass = BungeeCordConstants.LISTENER_CLASS
-
-        if (!psiClass.extendsOrImplements(bungeeCordListenerClass)) {
-            psiClass.addImplements(bungeeCordListenerClass)
-        }
-    }
-
-    override fun generateEventListenerMethod(
-        containingClass: PsiClass,
-        chosenClass: PsiClass,
-        chosenName: String,
-        data: GenerationData?,
-    ): PsiMethod? {
-        val method = BukkitModule.generateBukkitStyleEventListenerMethod(
-            chosenClass,
-            chosenName,
-            project,
-            BungeeCordConstants.HANDLER_ANNOTATION,
-            false,
-        ) ?: return null
-
-        val generationData = data as BungeeCordGenerationData? ?: return method
-
-        val modifierList = method.modifierList
-        val annotation = modifierList.findAnnotation(BungeeCordConstants.HANDLER_ANNOTATION) ?: return method
-
-        if (generationData.eventPriority == "NORMAL") {
-            return method
-        }
-
-        val value = JavaPsiFacade.getElementFactory(project)
-            .createExpressionFromText(
-                BungeeCordConstants.EVENT_PRIORITY_CLASS + "." + generationData.eventPriority,
-                annotation,
-            )
-
-        annotation.setDeclaredAttributeValue("priority", value)
-
-        return method
-    }
 
     override fun shouldShowPluginIcon(element: PsiElement?): Boolean {
         val identifier = element?.toUElementOfType<UIdentifier>()

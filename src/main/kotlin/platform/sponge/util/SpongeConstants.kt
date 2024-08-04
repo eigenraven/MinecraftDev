@@ -31,6 +31,7 @@ object SpongeConstants {
     const val TEXT_COLORS = "org.spongepowered.api.text.format.TextColors"
     const val EVENT = "org.spongepowered.api.event.Event"
     const val LISTENER_ANNOTATION = "org.spongepowered.api.event.Listener"
+    const val ORDER = "org.spongepowered.api.event.Order"
     const val GETTER_ANNOTATION = "org.spongepowered.api.event.filter.Getter"
     const val IS_CANCELLED_ANNOTATION = "org.spongepowered.api.event.filter.IsCancelled"
     const val CANCELLABLE = "org.spongepowered.api.event.Cancellable"

@@ -22,10 +22,10 @@ package com.demonwav.mcdev.util
 
 import com.intellij.util.net.HttpConnectionUtils
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 
 sealed class HttpConnectionFactory {
-    open fun openHttpConnection(url: String) = URL(url).openConnection() as HttpURLConnection
+    open fun openHttpConnection(url: String) = URI.create(url).toURL().openConnection() as HttpURLConnection
 }
 
 object ProxyHttpConnectionFactory : HttpConnectionFactory() {

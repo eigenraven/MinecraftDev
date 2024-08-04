@@ -30,4 +30,5 @@ object NeoForgeConstants {
     const val NETWORK_MESSAGE = "net.neoforged.neoforge.network.simple.SimpleMessage"
     const val MCMOD_INFO = "mcmod.info"
     const val PACK_MCMETA = "pack.mcmeta"
+    const val MODS_TOML = "neoforge.mods.toml"
 }

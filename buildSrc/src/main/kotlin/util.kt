@@ -24,6 +24,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.provideDelegate
@@ -39,8 +40,8 @@ fun Project.lexer(flex: String, pack: String): TaskDelegate<JFlexExec> {
 
     return tasks.registering(JFlexExec::class) {
         sourceFile.set(layout.projectDirectory.file("src/main/grammars/$flex.flex"))
-        destinationDirectory.set(layout.buildDirectory.dir("gen/$pack"))
-        destinationFile.set(layout.buildDirectory.file("gen/$pack/$flex.java"))
+        destinationDirectory.set(layout.buildDirectory.dir("gen/$pack/lexer"))
+        destinationFile.set(layout.buildDirectory.file("gen/$pack/lexer/$flex.java"))
         logFile.set(layout.buildDirectory.file("logs/generate$flex.log"))
 
         val jflex by project.configurations
@@ -61,7 +62,6 @@ fun Project.parser(bnf: String, pack: String): TaskDelegate<ParserExec> {
         val dest = destRoot.map { it.dir(pack) }
         sourceFile.set(project.layout.projectDirectory.file("src/main/grammars/$bnf.bnf"))
         destinationRootDirectory.set(destRoot)
-        destinationDirectory.set(dest)
         psiDirectory.set(dest.map { it.dir("psi") })
         parserDirectory.set(dest.map { it.dir("parser") })
         logFile.set(layout.buildDirectory.file("logs/generate$bnf.log"))

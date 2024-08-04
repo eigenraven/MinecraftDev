@@ -40,6 +40,8 @@ class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
         var isShowChatColorUnderlines: Boolean = false,
         var underlineType: UnderlineType = UnderlineType.DOTTED,
 
+        var mixinClassIcon: Boolean = true,
+
         var creatorTemplateRepos: List<TemplateRepo> = listOf(TemplateRepo.makeBuiltinRepo()),
     )
 
@@ -104,6 +106,12 @@ class MinecraftSettings : PersistentStateComponent<MinecraftSettings.State> {
         get() = state.underlineType
         set(underlineType) {
             state.underlineType = underlineType
+        }
+
+    var mixinClassIcon: Boolean
+        get() = state.mixinClassIcon
+        set(mixinClassIcon) {
+            state.mixinClassIcon = mixinClassIcon
         }
 
     var creatorTemplateRepos: List<TemplateRepo>

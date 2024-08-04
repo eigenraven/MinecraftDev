@@ -21,13 +21,35 @@
 package com.demonwav.mcdev.insight.generation
 
 import com.demonwav.mcdev.asset.MCDevBundle
-import com.intellij.codeInsight.generation.actions.BaseGenerateAction
+import com.demonwav.mcdev.facet.MinecraftFacet
+import com.demonwav.mcdev.util.findModule
+import com.intellij.codeInsight.CodeInsightActionHandler
+import com.intellij.codeInsight.actions.CodeInsightAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 
-class GenerateEventListenerAction : BaseGenerateAction(GenerateEventListenerHandler()) {
+class GenerateEventListenerAction : CodeInsightAction() {
+
+    private val handler = GenerateEventListenerHandler()
+
+    override fun getHandler(): CodeInsightActionHandler = handler
 
     override fun update(e: AnActionEvent) {
         super.update(e)
         e.presentation.text = MCDevBundle("generate.event_listener.title")
+    }
+
+    override fun isValidForFile(
+        project: Project,
+        editor: Editor,
+        file: PsiFile
+    ): Boolean {
+        val module = file.findModule() ?: return false
+        val minecraftFacet = MinecraftFacet.getInstance(module) ?: return false
+        val support = minecraftFacet.modules.firstNotNullOfOrNull { it.eventListenerGenSupport } ?: return false
+        val caretElement = file.findElementAt(editor.caretModel.offset) ?: return false
+        return support.canGenerate(caretElement, editor)
     }
 }

@@ -30,8 +30,9 @@ import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.rootManager
-import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.findPsiFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -54,24 +55,33 @@ class ResourceFileReference(
     private inner class Reference(desc: String, element: JsonStringLiteral) :
         PsiReferenceBase<JsonStringLiteral>(element),
         InspectionReference {
+
+        val isInTestSourceSet: Boolean = run {
+            val containingVFile = element.containingFile.originalFile.virtualFile
+            val inTestSourceContent =
+                ProjectRootManager.getInstance(element.project).fileIndex.isInTestSourceContent(containingVFile)
+            inTestSourceContent
+        }
+
         override val description = desc
         override val unresolved = resolve() == null
 
         override fun resolve(): PsiElement? {
             fun findFileIn(module: Module): PsiFile? {
                 val facet = MinecraftFacet.getInstance(module) ?: return null
-                val virtualFile = facet.findFile(element.value, SourceType.RESOURCE) ?: return null
+                var virtualFile = facet.findFile(element.value, SourceType.RESOURCE)
+                if (virtualFile == null && isInTestSourceSet) {
+                    virtualFile = facet.findFile(element.value, SourceType.TEST_RESOURCE)
+                }
+
+                if (virtualFile == null) {
+                    return null
+                }
+
                 return PsiManager.getInstance(element.project).findFile(virtualFile)
             }
 
-            val module = element.findModule() ?: return null
-            return findFileIn(module)
-                ?: ModuleRootManager.getInstance(module)
-                    .getDependencies(false)
-                    .mapFirstNotNull(::findFileIn)
-                ?: ModuleManager.getInstance(element.project)
-                    .getModuleDependentModules(module)
-                    .mapFirstNotNull(::findFileIn)
+            return getRelevantModules().mapFirstNotNull(::findFileIn)
         }
 
         override fun bindToElement(newTarget: PsiElement): PsiElement? {
@@ -87,13 +97,19 @@ class ResourceFileReference(
                 return emptyArray()
             }
 
-            val module = element.findModule() ?: return emptyArray()
             val variants = mutableListOf<Any>()
-            val relevantModules = ModuleManager.getInstance(element.project).getModuleDependentModules(module) + module
             runReadAction {
-                val relevantRoots = relevantModules.flatMap {
-                    it.rootManager.getSourceRoots(JavaResourceRootType.RESOURCE)
+                val relevantModules = getRelevantModules()
+
+                val relevantRootTypes = mutableSetOf(JavaResourceRootType.RESOURCE)
+                if (isInTestSourceSet) {
+                    relevantRootTypes.add(JavaResourceRootType.TEST_RESOURCE)
                 }
+
+                val relevantRoots = relevantModules.flatMap {
+                    it.rootManager.getSourceRoots(relevantRootTypes)
+                }
+
                 for (roots in relevantRoots) {
                     for (child in roots.children) {
                         val relativePath = child.path.removePrefix(roots.path)
@@ -106,5 +122,16 @@ class ResourceFileReference(
             }
             return variants.toTypedArray()
         }
+    }
+
+    private fun Reference.getRelevantModules(): Set<Module> {
+        val module = element.findModule() ?: return emptySet()
+        val relevantModules = mutableSetOf<Module>()
+        val moduleManager = ModuleManager.getInstance(element.project)
+        ModuleUtilCore.getDependencies(module, relevantModules)
+        relevantModules.flatMapTo(relevantModules) {
+            moduleManager.getModuleDependentModules(it)
+        }
+        return relevantModules
     }
 }

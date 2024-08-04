@@ -24,25 +24,28 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
+@CacheableTask
 abstract class ParserExec : JavaExec() {
 
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sourceFile: RegularFileProperty
 
-    @get:InputFiles
+    @get:Classpath
     abstract val grammarKit: ConfigurableFileCollection
 
-    @get:OutputDirectory
+    @get:Internal
     abstract val destinationRootDirectory: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val destinationDirectory: DirectoryProperty
 
     @get:OutputDirectory
     abstract val psiDirectory: DirectoryProperty

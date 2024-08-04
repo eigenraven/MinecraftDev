@@ -18,22 +18,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.demonwav.mcdev.platform.mcp.version
+package com.demonwav.mcdev.insight.generation
 
-import com.demonwav.mcdev.platform.mcp.McpVersionPair
+import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 
-class McpVersionEntry(val versionPair: McpVersionPair, val isRed: Boolean = false) {
+interface EventListenerGenerationSupport {
 
-    override fun toString(): String {
-        return if (isRed) {
-            RED_START + versionPair.mcpVersion + RED_END
-        } else {
-            versionPair.mcpVersion
-        }
-    }
+    fun canGenerate(context: PsiElement, editor: Editor): Boolean
 
-    companion object {
-        private const val RED_START = "<html><font color='red'>"
-        private const val RED_END = "</font></html>"
-    }
+    fun generateEventListener(
+        context: PsiElement,
+        listenerName: String,
+        eventClass: PsiClass,
+        data: GenerationData?,
+        editor: Editor
+    )
 }

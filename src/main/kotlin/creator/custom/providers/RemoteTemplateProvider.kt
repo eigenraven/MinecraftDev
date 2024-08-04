@@ -29,6 +29,7 @@ import com.demonwav.mcdev.creator.selectProxy
 import com.demonwav.mcdev.update.PluginUtil
 import com.demonwav.mcdev.util.refreshSync
 import com.github.kittinunf.fuel.core.FuelManager
+import com.github.kittinunf.fuel.coroutines.awaitByteArrayResult
 import com.github.kittinunf.result.getOrNull
 import com.github.kittinunf.result.onError
 import com.intellij.ide.util.projectWizard.WizardContext
@@ -62,7 +63,7 @@ open class RemoteTemplateProvider : TemplateProvider {
 
     override val hasConfig: Boolean = true
 
-    override fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) {
+    override suspend fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) {
         for (repo in repos) {
             ProgressManager.checkCanceled()
             val remote = RemoteTemplateRepo.deserialize(repo.data)
@@ -77,7 +78,7 @@ open class RemoteTemplateProvider : TemplateProvider {
         }
     }
 
-    protected fun doUpdateRepo(
+    protected suspend fun doUpdateRepo(
         indicator: ProgressIndicator,
         repoName: String,
         originalRepoUrl: String
@@ -88,11 +89,11 @@ open class RemoteTemplateProvider : TemplateProvider {
 
         val manager = FuelManager()
         manager.proxy = selectProxy(repoUrl)
-        val (_, _, result) = manager.get(repoUrl)
+        val result = manager.get(repoUrl)
             .header("User-Agent", "github_org/minecraft-dev/${PluginUtil.pluginVersion}")
             .header("Accepts", "application/json")
             .timeout(10000)
-            .response()
+            .awaitByteArrayResult()
 
         val data = result.onError {
             thisLogger().warn("Could not fetch remote templates repository update at $repoUrl", it)
@@ -114,7 +115,7 @@ open class RemoteTemplateProvider : TemplateProvider {
         return false
     }
 
-    override fun loadTemplates(
+    override suspend fun loadTemplates(
         context: WizardContext,
         repo: MinecraftSettings.TemplateRepo
     ): Collection<LoadedTemplate> {

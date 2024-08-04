@@ -22,6 +22,7 @@ package com.demonwav.mcdev.toml.platform.forge.inspections
 
 import com.demonwav.mcdev.platform.forge.util.ForgeConstants
 import com.demonwav.mcdev.toml.TomlElementVisitor
+import com.demonwav.mcdev.toml.platform.forge.ForgeTomlConstants
 import com.demonwav.mcdev.toml.platform.forge.ModsTomlSchema
 import com.demonwav.mcdev.toml.stringValue
 import com.demonwav.mcdev.toml.tomlType
@@ -53,14 +54,14 @@ class ModsTomlValidationInspection : LocalInspectionTool() {
     override fun getStaticDescription(): String = "Checks mods.toml files for errors"
 
     override fun processFile(file: PsiFile, manager: InspectionManager): MutableList<ProblemDescriptor> {
-        if (file.virtualFile.name == ForgeConstants.MODS_TOML) {
+        if (file.virtualFile.name in ForgeTomlConstants.FILE_NAMES) {
             return super.processFile(file, manager)
         }
         return mutableListOf()
     }
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
-        if (holder.file.virtualFile.name == ForgeConstants.MODS_TOML) {
+        if (holder.file.virtualFile.name in ForgeTomlConstants.FILE_NAMES) {
             return Visitor(holder)
         }
         return PsiElementVisitor.EMPTY_VISITOR

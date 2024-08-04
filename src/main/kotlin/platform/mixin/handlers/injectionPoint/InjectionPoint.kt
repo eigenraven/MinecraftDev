@@ -22,13 +22,11 @@ package com.demonwav.mcdev.platform.mixin.handlers.injectionPoint
 
 import com.demonwav.mcdev.platform.mixin.reference.MixinSelector
 import com.demonwav.mcdev.platform.mixin.reference.toMixinString
-import com.demonwav.mcdev.platform.mixin.util.MixinConstants.Classes.SHIFT
 import com.demonwav.mcdev.platform.mixin.util.fakeResolve
 import com.demonwav.mcdev.platform.mixin.util.findOrConstructSourceMethod
 import com.demonwav.mcdev.util.constantStringValue
 import com.demonwav.mcdev.util.constantValue
 import com.demonwav.mcdev.util.createLiteralExpression
-import com.demonwav.mcdev.util.equivalentTo
 import com.demonwav.mcdev.util.findAnnotations
 import com.demonwav.mcdev.util.fullQualifiedName
 import com.demonwav.mcdev.util.getQualifiedMemberReference
@@ -47,17 +45,13 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiEnumConstant
-import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiLambdaExpression
 import com.intellij.psi.PsiLiteral
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiMethodReferenceExpression
-import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.serviceContainer.BaseKeyedLazyInstance
 import com.intellij.util.ArrayUtilRt
@@ -108,6 +102,10 @@ abstract class InjectionPoint<T : PsiElement> {
 
     open fun isArgValueList(at: PsiAnnotation, key: String) = false
 
+    open val discouragedMessage: String? = null
+
+    open fun isShiftDiscouraged(shift: Int): Boolean = shift != 0
+
     abstract fun createNavigationVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,
@@ -144,20 +142,7 @@ abstract class InjectionPoint<T : PsiElement> {
     }
 
     protected open fun addShiftSupport(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {
-        val shiftAttr = at.findDeclaredAttributeValue("shift") as? PsiExpression ?: return
-        val shiftReference = PsiUtil.skipParenthesizedExprDown(shiftAttr) as? PsiReferenceExpression ?: return
-        val shift = shiftReference.resolve() as? PsiEnumConstant ?: return
-        val containingClass = shift.containingClass ?: return
-        val shiftClass = JavaPsiFacade.getInstance(at.project).findClass(SHIFT, at.resolveScope) ?: return
-        if (!(containingClass equivalentTo shiftClass)) return
-        when (shift.name) {
-            "BEFORE" -> collectVisitor.shiftBy = -1
-            "AFTER" -> collectVisitor.shiftBy = 1
-            "BY" -> {
-                val by = at.findDeclaredAttributeValue("by")?.constantValue as? Int ?: return
-                collectVisitor.shiftBy = by
-            }
-        }
+        collectVisitor.shiftBy = AtResolver.getShift(at)
     }
 
     protected open fun addSliceFilter(at: PsiAnnotation, targetClass: ClassNode, collectVisitor: CollectVisitor<*>) {

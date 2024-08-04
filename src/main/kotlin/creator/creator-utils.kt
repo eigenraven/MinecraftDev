@@ -37,10 +37,12 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.ObservableProperty
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.RecursionManager
 import java.time.ZonedDateTime
+import javax.swing.JComponent
 
 val NewProjectWizardStep.gitEnabled
     get() = data.getUserData(GitNewProjectWizardData.KEY)!!.git
@@ -165,10 +167,13 @@ fun notifyCreatedProjectNotOpened() {
     ).notify(null)
 }
 
+val WizardContext.contentPanel: JComponent?
+    get() = this.getUserData(AbstractWizard.KEY)?.contentPanel
+
 val WizardContext.modalityState: ModalityState
     get() {
-        val contentPanel = this.getUserData(AbstractWizard.KEY)?.contentPanel
-
+        ProgressManager.checkCanceled()
+        val contentPanel = contentPanel
         if (contentPanel == null) {
             thisLogger().error("Wizard content panel is null, using default modality state")
             return ModalityState.defaultModalityState()

@@ -44,6 +44,24 @@ abstract class AbstractInvokeInjectionPoint(private val assign: Boolean) : Abstr
         completeExtraStringAtAttribute(editor, reference, "target")
     }
 
+    override fun isShiftDiscouraged(shift: Int): Boolean {
+        if (shift == 0) {
+            return false
+        }
+        if (assign) {
+            // allow shifting before the INVOKE_ASSIGN
+            if (shift == -1) {
+                return false
+            }
+        } else {
+            // allow shifting after the INVOKE
+            if (shift == 1) {
+                return false
+            }
+        }
+        return true
+    }
+
     override fun createNavigationVisitor(
         at: PsiAnnotation,
         target: MixinSelector?,

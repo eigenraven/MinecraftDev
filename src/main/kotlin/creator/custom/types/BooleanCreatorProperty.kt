@@ -20,10 +20,9 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.intellij.icons.AllIcons
-import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.content.AlertIcon
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RightGap
@@ -31,9 +30,8 @@ import com.intellij.ui.dsl.builder.bindSelected
 
 class BooleanCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : SimpleCreatorProperty<Boolean>(descriptor, graph, properties, Boolean::class.java) {
+    context: CreatorContext
+) : SimpleCreatorProperty<Boolean>(descriptor, context, Boolean::class.java) {
 
     override fun createDefaultValue(raw: Any?): Boolean = raw as? Boolean ?: false
 
@@ -41,7 +39,7 @@ class BooleanCreatorProperty(
 
     override fun deserialize(string: String): Boolean = string.toBoolean()
 
-    override fun buildSimpleUi(panel: Panel, context: WizardContext) {
+    override fun buildSimpleUi(panel: Panel) {
         val label = descriptor.translatedLabel
         panel.row(label) {
             val warning = descriptor.translatedWarning
@@ -60,8 +58,7 @@ class BooleanCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = BooleanCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = BooleanCreatorProperty(descriptor, context)
     }
 }

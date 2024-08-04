@@ -22,6 +22,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.util.Properties
 import java.util.zip.ZipFile
@@ -94,7 +95,7 @@ tasks.register("resolveIntellijLibSources") {
                 val groupPath = dep.groupId.replace('.', '/')
                 val (_, artifact, ver) = dep
                 val url = "https://repo.maven.apache.org/maven2/$groupPath/$artifact/$ver/$artifact-$ver-sources.jar"
-                return@filter with(URL(url).openConnection() as HttpURLConnection) {
+                return@filter with(URI.create(url).toURL().openConnection() as HttpURLConnection) {
                     try {
                         requestMethod = "GET"
                         val code = responseCode

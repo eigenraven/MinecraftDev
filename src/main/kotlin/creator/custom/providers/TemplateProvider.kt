@@ -57,9 +57,9 @@ interface TemplateProvider {
 
     val hasConfig: Boolean
 
-    fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) = Unit
+    suspend fun init(indicator: ProgressIndicator, repos: List<MinecraftSettings.TemplateRepo>) = Unit
 
-    fun loadTemplates(context: WizardContext, repo: MinecraftSettings.TemplateRepo): Collection<LoadedTemplate>
+    suspend fun loadTemplates(context: WizardContext, repo: MinecraftSettings.TemplateRepo): Collection<LoadedTemplate>
 
     fun setupConfigUi(data: String, dataSetter: (String) -> Unit): JComponent?
 

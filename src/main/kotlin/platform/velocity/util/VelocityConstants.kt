@@ -26,6 +26,7 @@ object VelocityConstants {
 
     const val PLUGIN_ANNOTATION = "com.velocitypowered.api.plugin.Plugin"
     const val SUBSCRIBE_ANNOTATION = "com.velocitypowered.api.event.Subscribe"
+    const val POST_ORDER = "com.velocitypowered.api.event.PostOrder"
     const val KYORI_TEXT_COLOR = "net.kyori.text.format.TextColor"
 
     val API_2 = SemanticVersion.release(2)

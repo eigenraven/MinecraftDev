@@ -20,14 +20,13 @@
 
 package com.demonwav.mcdev.creator.custom.types
 
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.PropertyDerivation
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.RecommendJavaVersionForMcVersionPropertyDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
-import com.intellij.ide.util.projectWizard.WizardContext
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindIntText
@@ -35,9 +34,8 @@ import com.intellij.ui.dsl.builder.columns
 
 class IntegerCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : SimpleCreatorProperty<Int>(descriptor, graph, properties, Int::class.java) {
+    context: CreatorContext
+) : SimpleCreatorProperty<Int>(descriptor, context, Int::class.java) {
 
     override fun createDefaultValue(raw: Any?): Int = (raw as? Number)?.toInt() ?: 0
 
@@ -47,7 +45,7 @@ class IntegerCreatorProperty(
 
     override fun convertSelectDerivationResult(original: Any?): Any? = (original as? Number)?.toInt()
 
-    override fun buildSimpleUi(panel: Panel, context: WizardContext) {
+    override fun buildSimpleUi(panel: Panel) {
         panel.row(descriptor.translatedLabel) {
             this.intTextField().bindIntText(graphProperty)
                 .columns(COLUMNS_LARGE)
@@ -75,8 +73,7 @@ class IntegerCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = IntegerCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = IntegerCreatorProperty(descriptor, context)
     }
 }

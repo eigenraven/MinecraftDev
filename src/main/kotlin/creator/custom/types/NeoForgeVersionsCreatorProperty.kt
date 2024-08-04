@@ -22,6 +22,7 @@ package com.demonwav.mcdev.creator.custom.types
 
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.creator.custom.BuiltinValidations
+import com.demonwav.mcdev.creator.custom.CreatorContext
 import com.demonwav.mcdev.creator.custom.TemplateEvaluator
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
@@ -31,29 +32,24 @@ import com.demonwav.mcdev.platform.neoforge.version.NeoGradleVersion
 import com.demonwav.mcdev.platform.neoforge.version.platform.neoforge.version.NeoModDevVersion
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.asyncIO
-import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.observable.properties.GraphProperty
-import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.observable.util.transform
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.bindItem
-import com.intellij.util.application
 import com.intellij.util.ui.AsyncProcessIcon
 import javax.swing.DefaultComboBoxModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class NeoForgeVersionsCreatorProperty(
     descriptor: TemplatePropertyDescriptor,
-    graph: PropertyGraph,
-    properties: Map<String, CreatorProperty<*>>
-) : CreatorProperty<NeoForgeVersions>(descriptor, graph, properties, NeoForgeVersions::class.java) {
+    context: CreatorContext
+) : CreatorProperty<NeoForgeVersions>(descriptor, context, NeoForgeVersions::class.java) {
 
     private val emptyVersion = SemanticVersion.release()
 
@@ -97,7 +93,7 @@ class NeoForgeVersionsCreatorProperty(
         )
     }
 
-    override fun buildUi(panel: Panel, context: WizardContext) {
+    override fun buildUi(panel: Panel) {
         panel.row("") {
             cell(AsyncProcessIcon("NeoForgeVersions download"))
             label(MCDevBundle("creator.ui.versions_download.label"))
@@ -137,7 +133,7 @@ class NeoForgeVersionsCreatorProperty(
         }
 
         val mcVersionFilter = descriptor.parameters?.get("mcVersionFilter") as? String
-        downloadVersion(mcVersionFilter) {
+        downloadVersion(context, mcVersionFilter) {
             val mcVersions = mcVersions ?: return@downloadVersion
 
             mcVersionsModel.removeAllElements()
@@ -166,36 +162,35 @@ class NeoForgeVersionsCreatorProperty(
         private var mdVersion: NeoModDevVersion? = null
         private var mcVersions: List<SemanticVersion>? = null
 
-        private fun downloadVersion(mcVersionFilter: String?, uiCallback: () -> Unit) {
+        private fun downloadVersion(context: CreatorContext, mcVersionFilter: String?, uiCallback: () -> Unit) {
             if (hasDownloadedVersions) {
                 uiCallback()
                 return
             }
 
-            application.executeOnPooledThread {
-                runBlocking {
-                    awaitAll(
-                        asyncIO { NeoForgeVersion.downloadData().also { nfVersion = it } },
-                        asyncIO { NeoGradleVersion.downloadData().also { ngVersion = it } },
-                        asyncIO { NeoModDevVersion.downloadData().also { mdVersion = it } },
-                    )
+            val scope = context.childScope("NeoForgeVersionsCreatorProperty")
+            scope.launch(Dispatchers.Default) {
+                awaitAll(
+                    asyncIO { NeoForgeVersion.downloadData().also { nfVersion = it } },
+                    asyncIO { NeoGradleVersion.downloadData().also { ngVersion = it } },
+                    asyncIO { NeoModDevVersion.downloadData().also { mdVersion = it } },
+                )
 
-                    mcVersions = nfVersion?.sortedMcVersions?.let { mcVersion ->
-                        if (mcVersionFilter != null) {
-                            mcVersion.filter { version ->
-                                val conditionProps = mapOf("MC_VERSION" to version)
-                                TemplateEvaluator.condition(conditionProps, mcVersionFilter).getOrDefault(true)
-                            }
-                        } else {
-                            mcVersion
+                mcVersions = nfVersion?.sortedMcVersions?.let { mcVersion ->
+                    if (mcVersionFilter != null) {
+                        mcVersion.filter { version ->
+                            val conditionProps = mapOf("MC_VERSION" to version)
+                            TemplateEvaluator.condition(conditionProps, mcVersionFilter).getOrDefault(true)
                         }
+                    } else {
+                        mcVersion
                     }
+                }
 
-                    hasDownloadedVersions = true
+                hasDownloadedVersions = true
 
-                    withContext(Dispatchers.Swing) {
-                        uiCallback()
-                    }
+                withContext(context.uiContext) {
+                    uiCallback()
                 }
             }
         }
@@ -204,8 +199,7 @@ class NeoForgeVersionsCreatorProperty(
     class Factory : CreatorPropertyFactory {
         override fun create(
             descriptor: TemplatePropertyDescriptor,
-            graph: PropertyGraph,
-            properties: Map<String, CreatorProperty<*>>
-        ): CreatorProperty<*> = NeoForgeVersionsCreatorProperty(descriptor, graph, properties)
+            context: CreatorContext
+        ): CreatorProperty<*> = NeoForgeVersionsCreatorProperty(descriptor, context)
     }
 }

@@ -25,7 +25,6 @@ import com.demonwav.mcdev.platform.mixin.handlers.MixinAnnotationHandler
 import com.demonwav.mcdev.platform.mixin.handlers.injectionPoint.CollectVisitor
 import com.demonwav.mcdev.platform.mixin.util.LocalInfo
 import com.demonwav.mcdev.platform.mixin.util.MixinConstants
-import com.demonwav.mcdev.platform.mixin.util.cached
 import com.demonwav.mcdev.util.MemberReference
 import com.demonwav.mcdev.util.computeStringArray
 import com.demonwav.mcdev.util.constantStringValue
@@ -33,6 +32,7 @@ import com.demonwav.mcdev.util.descriptor
 import com.demonwav.mcdev.util.findAnnotations
 import com.demonwav.mcdev.util.resolveType
 import com.demonwav.mcdev.util.resolveTypeArray
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -78,12 +78,14 @@ object MEExpressionMatchUtil {
         ExpressionService.offerInstance(MEExpressionService)
     }
 
-    fun getFlowMap(project: Project, classIn: ClassNode, methodIn: MethodNode): FlowMap? {
+    private val flowCache = Caffeine.newBuilder().weakKeys().build<MethodNode, FlowMap?>()
+
+    fun getFlowMap(project: Project, classNode: ClassNode, methodIn: MethodNode): FlowMap? {
         if (methodIn.instructions == null) {
             return null
         }
 
-        return methodIn.cached(classIn, project) { classNode, methodNode ->
+        return flowCache.asMap().computeIfAbsent(methodIn) { methodNode ->
             val interpreter = object : FlowInterpreter(classNode, methodNode, MEFlowContext(project)) {
                 override fun newValue(type: Type?): FlowValue? {
                     ProgressManager.checkCanceled()
@@ -147,7 +149,7 @@ object MEExpressionMatchUtil {
                     throw e
                 }
                 LOGGER.warn("MEExpressionMatchUtil.getFlowMap failed", e)
-                return@cached null
+                return@computeIfAbsent null
             }
 
             interpreter.finish().asSequence().mapNotNull { flow -> flow.virtualInsnOrNull?.let { it to flow } }.toMap()

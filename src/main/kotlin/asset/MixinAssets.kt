@@ -27,4 +27,6 @@ object MixinAssets : Assets() {
 
     val MIXIN_CLASS_ICON = loadIcon("/assets/icons/mixin/mixin_class_gutter.png")
     val MIXIN_CLASS_ICON_DARK = loadIcon("/assets/icons/mixin/mixin_class_gutter_dark.png")
+
+    val MIXIN_MARK = loadIcon("/assets/icons/mixin/mixin_mark.svg")
 }

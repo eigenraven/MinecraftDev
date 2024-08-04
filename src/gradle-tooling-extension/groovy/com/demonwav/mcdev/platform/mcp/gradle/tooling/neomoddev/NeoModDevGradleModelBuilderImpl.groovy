@@ -22,6 +22,7 @@ package com.demonwav.mcdev.platform.mcp.gradle.tooling.neomoddev
 
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelNMD
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
@@ -51,16 +52,26 @@ final class NeoModDevGradleModelBuilderImpl implements ModelBuilderService {
             return null
         }
 
-        def accessTransformers = extension.accessTransformers.get().collect { project.file(it) }
+        def accessTransformersRaw = extension.accessTransformers
+        List<File> accessTransformers
+        if (accessTransformersRaw instanceof ListProperty) {
+            accessTransformers = accessTransformersRaw.get().collect { project.file(it) }
+        } else {
+            accessTransformers = accessTransformersRaw.files.files.toList()
+        }
 
-        // Hacky way to guess where the mappings file is, but I could not find a proper way to find it
-        def neoformDir = project.buildDir.toPath().resolve("neoForm")
-        def mappingsFile = Files.list(neoformDir)
-                .map { it.resolve("config/joined.tsrg") }
-                .filter { Files.exists(it) }
-                .findFirst()
-                .orElse(null)
-                ?.toFile()
+        File mappingsFile = null
+        try {
+            // Hacky way to guess where the mappings file is, but I could not find a proper way to find it
+            def neoformDir = project.buildDir.toPath().resolve("neoForm")
+            mappingsFile = Files.list(neoformDir)
+                    .map { it.resolve("config/joined.tsrg") }
+                    .filter { Files.exists(it) }
+                    .findFirst()
+                    .orElse(null)
+                    ?.toFile()
+        } catch (Exception ignore) {
+        }
 
         //noinspection GroovyAssignabilityCheck
         return new NeoModDevGradleModelImpl(neoforgeVersion, mappingsFile, accessTransformers)
