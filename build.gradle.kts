@@ -149,7 +149,7 @@ dependencies {
 
     intellijPlatform {
         intellijIdeaCommunity(ideaVersionProvider, useInstaller = false)
-        bundledPlugin("com.intellij.java.ide")
+        bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("com.intellij.gradle")
         bundledPlugin("org.intellij.groovy")
