@@ -27,6 +27,7 @@ import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
+import com.demonwav.mcdev.creator.custom.derivation.UnknownDerivation
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.observable.properties.GraphProperty
@@ -145,17 +146,17 @@ abstract class CreatorProperty<T>(
             }
 
             derivation = setupDerivation(reporter, descriptor.derives)
-            if (derivation == null) {
+            if (derivation == UnknownDerivation) {
                 reporter.fatal("Unknown method derivation: ${descriptor.derives}")
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            graphProperty.set(derive(collectDerivationParentValues(reporter), descriptor.derives) as T)
-            for (parent in parents) {
-                val parentProperty = properties[parent]!!
-                graphProperty.dependsOn(parentProperty.graphProperty, descriptor.derives.whenModified != false) {
-                    @Suppress("UNCHECKED_CAST")
-                    derive(collectDerivationParentValues(), descriptor.derives) as T
+            } else if (derivation != null) {
+                @Suppress("UNCHECKED_CAST")
+                graphProperty.set(derive(collectDerivationParentValues(reporter), descriptor.derives) as T)
+                for (parent in parents) {
+                    val parentProperty = properties[parent]!!
+                    graphProperty.dependsOn(parentProperty.graphProperty, descriptor.derives.whenModified != false) {
+                        @Suppress("UNCHECKED_CAST")
+                        derive(collectDerivationParentValues(), descriptor.derives) as T
+                    }
                 }
             }
         }
@@ -173,10 +174,13 @@ abstract class CreatorProperty<T>(
         }
     }
 
+    /**
+     * @return [UnknownDerivation] if the derivation method is unknown, `null` if the derivation is invalid.
+     */
     protected open fun setupDerivation(
         reporter: TemplateValidationReporter,
         derives: PropertyDerivation
-    ): PreparedDerivation? = null
+    ): PreparedDerivation? = UnknownDerivation
 
     protected fun makeStorageKey(discriminator: String? = null): String {
         val base = "${javaClass.name}.property.${descriptor.name}.${descriptor.type}"

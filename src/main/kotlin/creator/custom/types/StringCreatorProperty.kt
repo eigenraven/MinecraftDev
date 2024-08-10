@@ -28,6 +28,7 @@ import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.ReplacePropertyDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
+import com.demonwav.mcdev.creator.custom.derivation.UnknownDerivation
 import com.intellij.openapi.observable.properties.GraphProperty
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
@@ -77,7 +78,7 @@ class StringCreatorProperty(
             SelectPropertyDerivation.create(reporter, emptyList(), derives)
         }
 
-        else -> null
+        else -> UnknownDerivation
     }
 
     override fun buildSimpleUi(panel: Panel) {

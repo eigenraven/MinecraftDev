@@ -27,6 +27,7 @@ import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SuggestClassNamePropertyDerivation
+import com.demonwav.mcdev.creator.custom.derivation.UnknownDerivation
 import com.demonwav.mcdev.creator.custom.model.ClassFqn
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
@@ -63,7 +64,7 @@ class ClassFqnCreatorProperty(
             SuggestClassNamePropertyDerivation.create(reporter, parents, derives)
         }
 
-        else -> null
+        else -> UnknownDerivation
     }
 
     class Factory : CreatorPropertyFactory {

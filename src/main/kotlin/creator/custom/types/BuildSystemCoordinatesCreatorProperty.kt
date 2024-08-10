@@ -89,7 +89,10 @@ class BuildSystemCoordinatesCreatorProperty(
             graphProperty.dependsOn(projectNameProperty, false) {
                 val newProjectName = projectNameProperty.get()
                 if (newProjectName is String) {
-                    coords.copy(artifactId = newProjectName)
+                    val sanitizedArtifactId = newProjectName.lowercase()
+                        .replace(Regex("\\W+"), "-")
+                        .removeSuffix("-")
+                    coords.copy(artifactId = sanitizedArtifactId)
                 } else {
                     coords
                 }

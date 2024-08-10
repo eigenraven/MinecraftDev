@@ -27,6 +27,7 @@ import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.RecommendJavaVersionForMcVersionPropertyDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
+import com.demonwav.mcdev.creator.custom.derivation.UnknownDerivation
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindIntText
@@ -67,7 +68,7 @@ class IntegerCreatorProperty(
             SelectPropertyDerivation.create(reporter, emptyList(), derives)
         }
 
-        else -> null
+        else -> UnknownDerivation
     }
 
     class Factory : CreatorPropertyFactory {

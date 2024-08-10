@@ -28,13 +28,19 @@ class ReplacePropertyDerivation(
     val regex: Regex,
     val replacement: String,
     val maxLength: Int?,
+    val lowercase: Boolean,
 ) : PreparedDerivation {
 
     override fun derive(parentValues: List<Any?>): Any? {
         val projectName = parentValues.first() as? String
             ?: return null
 
-        val sanitized = projectName.lowercase().replace(regex, replacement)
+        var sanitized = projectName
+        if (lowercase) {
+            sanitized = sanitized.lowercase()
+        }
+
+        sanitized = sanitized.replace(regex, replacement)
         if (maxLength != null && sanitized.length > maxLength) {
             return sanitized.substring(0, maxLength)
         }
@@ -59,7 +65,7 @@ class ReplacePropertyDerivation(
                 return null
             }
 
-            if (parents.size > 2) {
+            if (parents.size > 1) {
                 reporter.warn("More than one parent defined")
             }
 
@@ -88,7 +94,8 @@ class ReplacePropertyDerivation(
             }
 
             val maxLength = (derivation.parameters["maxLength"] as? Number)?.toInt()
-            return ReplacePropertyDerivation(regex, replacement, maxLength)
+            val lowercase = derivation.parameters["lowercase"] as? Boolean == true
+            return ReplacePropertyDerivation(regex, replacement, maxLength, lowercase)
         }
     }
 }

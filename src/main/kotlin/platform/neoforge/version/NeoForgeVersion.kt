@@ -48,7 +48,11 @@ class NeoForgeVersion private constructor(val versions: List<String>) {
     fun getNeoForgeVersions(mcVersion: SemanticVersion): List<SemanticVersion> {
         val versionText = mcVersion.toString()
         // Drop the 1. part of the mc version
-        val shortMcVersion = versionText.substringAfter('.')
+        var shortMcVersion = versionText.substringAfter('.')
+        if (!shortMcVersion.contains('.')) {
+            // Ensure we have the .0 part
+            shortMcVersion = "$shortMcVersion.0"
+        }
         val toList = versions.asSequence()
             .filter { it.substringBeforeLast('.') == shortMcVersion }
             .mapNotNull(SemanticVersion::tryParse)

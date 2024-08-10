@@ -54,4 +54,7 @@ data class CreatorContext(
      * A general purpose scope dependent of the main creator scope, cancelled when the creator is closed.
      */
     fun childScope(name: String): CoroutineScope = scope.childScope(name)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> property(name: String): CreatorProperty<T> = properties[name] as CreatorProperty<T>
 }

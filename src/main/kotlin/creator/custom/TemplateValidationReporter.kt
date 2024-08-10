@@ -36,6 +36,7 @@ interface TemplateValidationReporter {
 class TemplateValidationReporterImpl : TemplateValidationReporter {
 
     private val validationItems: MutableMap<String, MutableList<TemplateValidationItem>> = linkedMapOf()
+    val items: Map<String, List<TemplateValidationItem>> = validationItems
     var hasErrors = false
         private set
     var hasWarns = false
@@ -99,7 +100,7 @@ class TemplateValidationReporterImpl : TemplateValidationReporter {
 
 class TemplateValidationException(message: String?, cause: Throwable? = null) : Exception(message, cause)
 
-private sealed class TemplateValidationItem(val message: String, val color: JBColor) {
+sealed class TemplateValidationItem(val message: String, val color: JBColor) {
 
     class Warn(message: String) : TemplateValidationItem(message, JBColor.YELLOW)
     class Error(message: String) : TemplateValidationItem(message, JBColor.RED)

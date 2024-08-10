@@ -27,6 +27,7 @@ import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.derivation.ExtractVersionMajorMinorPropertyDerivation
 import com.demonwav.mcdev.creator.custom.derivation.PreparedDerivation
 import com.demonwav.mcdev.creator.custom.derivation.SelectPropertyDerivation
+import com.demonwav.mcdev.creator.custom.derivation.UnknownDerivation
 import com.demonwav.mcdev.util.SemanticVersion
 import com.intellij.ui.dsl.builder.COLUMNS_SHORT
 import com.intellij.ui.dsl.builder.Panel
@@ -67,7 +68,7 @@ open class SemanticVersionCreatorProperty(
             SelectPropertyDerivation.create(reporter, emptyList(), derives)
         }
 
-        else -> null
+        else -> UnknownDerivation
     }
 
     override fun convertSelectDerivationResult(original: Any?): Any? {

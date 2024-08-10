@@ -28,6 +28,11 @@ fun interface PreparedDerivation {
     fun derive(parentValues: List<Any?>): Any?
 }
 
+object UnknownDerivation : PreparedDerivation {
+
+    override fun derive(parentValues: List<Any?>): Any? = null
+}
+
 interface PropertyDerivationFactory {
 
     fun create(

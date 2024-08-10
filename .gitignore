@@ -26,6 +26,8 @@ hs_err_pid*
 **/.gradle/
 .intellijPlatform/
 .sandbox/
+.intellijPlatform/
+.kotlin/
 
 /gen/
 
