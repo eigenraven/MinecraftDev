@@ -53,7 +53,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.application
-import kotlinx.coroutines.CoroutineScope
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.collections.mapNotNull
@@ -61,6 +60,7 @@ import kotlin.collections.orEmpty
 import kotlin.collections.set
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
+import kotlinx.coroutines.CoroutineScope
 
 interface ExternalTemplatePropertyProvider {
 
