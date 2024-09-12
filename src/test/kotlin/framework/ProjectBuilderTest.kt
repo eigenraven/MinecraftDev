@@ -30,7 +30,6 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import kotlin.reflect.KClass
-import org.junit.ComparisonFailure
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
@@ -69,13 +68,6 @@ abstract class ProjectBuilderTest(descriptor: LightProjectDescriptor? = null) {
 
     @AfterEach
     fun tearDown() {
-        try {
-            fixture.tearDown()
-        } catch (e: ComparisonFailure) {
-            // For some reason this failure started to happen since 2024.2, but has visibly no bad side effect so far?
-            if (e.message?.startsWith("Code style settings damaged") != true) {
-                throw e
-            }
-        }
+        fixture.tearDown()
     }
 }

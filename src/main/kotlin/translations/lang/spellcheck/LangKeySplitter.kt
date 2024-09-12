@@ -20,6 +20,7 @@
 
 package com.demonwav.mcdev.translations.lang.spellcheck
 
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.spellchecker.inspections.BaseSplitter
 import com.intellij.spellchecker.inspections.IdentifierSplitter
@@ -37,7 +38,7 @@ object LangKeySplitter : BaseSplitter() {
 
         var index = range.startOffset
         for (codepoint in codepoints) {
-            checkCancelled()
+            ProgressManager.checkCanceled()
             // Use full text with the correct range
             idSplitter.split(text, TextRange.from(index, codepoint.length), consumer)
 

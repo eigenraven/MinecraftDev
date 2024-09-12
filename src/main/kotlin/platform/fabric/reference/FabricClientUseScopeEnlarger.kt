@@ -23,13 +23,14 @@ package com.demonwav.mcdev.platform.fabric.reference
 import com.demonwav.mcdev.platform.fabric.util.FabricConstants
 import com.demonwav.mcdev.platform.mcp.fabricloom.FabricLoomData
 import com.demonwav.mcdev.util.findModule
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.util.Computable
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.UseScopeEnlarger
+import java.util.concurrent.Callable
 import org.jetbrains.plugins.gradle.util.GradleUtil
 
 class FabricClientUseScopeEnlarger : UseScopeEnlarger() {
@@ -43,12 +44,12 @@ class FabricClientUseScopeEnlarger : UseScopeEnlarger() {
 
         if (loomData.splitMinecraftJar) {
             return GlobalSearchScope.filesScope(element.project) {
-                DumbService.getInstance(module.project).runReadActionInSmartMode(
-                    Computable {
+                ReadAction.nonBlocking(
+                    Callable<Collection<VirtualFile>> {
                         val moduleWithDeps = GlobalSearchScope.moduleWithDependenciesScope(module)
                         FilenameIndex.getVirtualFilesByName(FabricConstants.FABRIC_MOD_JSON, moduleWithDeps)
                     }
-                )
+                ).inSmartMode(element.project).executeSynchronously()
             }
         }
 

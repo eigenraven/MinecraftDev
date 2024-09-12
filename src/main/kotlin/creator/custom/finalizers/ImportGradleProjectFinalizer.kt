@@ -24,7 +24,7 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.project.open.canLinkAndRefreshGradleProject
-import org.jetbrains.plugins.gradle.service.project.open.linkAndRefreshGradleProject
+import org.jetbrains.plugins.gradle.service.project.open.linkAndSyncGradleProject
 
 class ImportGradleProjectFinalizer : CreatorFinalizer {
 
@@ -38,7 +38,7 @@ class ImportGradleProjectFinalizer : CreatorFinalizer {
         val canLink = canLinkAndRefreshGradleProject(projectDir, project, showValidationDialog = false)
         thisLogger().info("canLink = $canLink projectDir = $projectDir")
         if (canLink) {
-            linkAndRefreshGradleProject(projectDir, project)
+            linkAndSyncGradleProject(project, projectDir)
             thisLogger().info("Linking done")
         }
     }

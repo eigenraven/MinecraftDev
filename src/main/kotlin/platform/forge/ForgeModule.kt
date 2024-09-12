@@ -38,8 +38,8 @@ import com.demonwav.mcdev.util.waitForAllSmart
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -47,6 +47,8 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Callable
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UIdentifier
 import org.jetbrains.uast.toUElementOfType
@@ -76,25 +78,18 @@ class ForgeModule internal constructor(facet: MinecraftFacet) : AbstractModule(f
             }
 
             // Index @SideOnly
-            val service = DumbService.getInstance(project)
-            service.runReadActionInSmartMode runSmart@{
-                if (service.isDumb || project.isDisposed) {
-                    return@runSmart
-                }
+            ReadAction.nonBlocking(
+                Callable {
+                    val scope = GlobalSearchScope.projectScope(project)
+                    val sidedProxy = JavaPsiFacade.getInstance(project)
+                        .findClass(ForgeConstants.SIDED_PROXY_ANNOTATION, scope) ?: return@Callable
+                    val annotatedFields = AnnotatedElementsSearch.searchPsiFields(sidedProxy, scope).findAll()
 
-                val scope = GlobalSearchScope.projectScope(project)
-                val sidedProxy = JavaPsiFacade.getInstance(project)
-                    .findClass(ForgeConstants.SIDED_PROXY_ANNOTATION, scope) ?: return@runSmart
-                val annotatedFields = AnnotatedElementsSearch.searchPsiFields(sidedProxy, scope).findAll()
-
-                for (field in annotatedFields) {
-                    if (service.isDumb || project.isDisposed) {
-                        return@runSmart
+                    for (field in annotatedFields) {
+                        SidedProxyAnnotator.check(field)
                     }
-
-                    SidedProxyAnnotator.check(field)
                 }
-            }
+            ).inSmartMode(project).submit(AppExecutorUtil.getAppExecutorService())
         }
     }
 

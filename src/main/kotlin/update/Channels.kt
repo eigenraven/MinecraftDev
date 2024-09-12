@@ -27,6 +27,6 @@ enum class Channels(val title: String, val url: String) {
     ;
 
     fun hasChannel(): Boolean {
-        return UpdateSettings.getInstance().pluginHosts.contains(url)
+        return UpdateSettings.getInstance().storedPluginHosts.contains(url)
     }
 }

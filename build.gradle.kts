@@ -98,7 +98,7 @@ dependencies {
     implementation(libs.bundles.fuel)
 
     intellijPlatform {
-        intellijIdeaCommunity(libs.versions.intellij.ide)
+        intellijIdeaCommunity(libs.versions.intellij.ide, useInstaller = false)
 
         // Bundled plugin dependencies
         bundledPlugin("com.intellij.java")
