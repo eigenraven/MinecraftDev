@@ -1,0 +1,26 @@
+tsrg2 left right
+com/mojang/blaze3d/Blaze3D com/mojang/blaze3d/Blaze3D
+	<init> ()V <init>
+	getTime ()D m_83640_
+		static
+	process (Lcom/mojang/blaze3d/pipeline/RenderPipeline;F)V m_166118_
+		static
+		0 p_166119_ p_166119_
+		1 p_166120_ p_166120_
+com/mojang/blaze3d/audio/Channel com/mojang/blaze3d/audio/ChannelTest
+	BUFFER_DURATION_SECONDS f_166124_
+	LOGGER f_83641_
+	QUEUED_BUFFER_COUNT f_166125_
+	<clinit> ()V <clinit>
+		static
+	<init> (I)V <init>
+		0 p_83648_ p_83648_
+	attachBufferStream (Lnet/minecraft/client/sounds/AudioStream;)V m_83658_
+		0 p_83659_ p_83659_
+	initialized f_83643_
+	attachStaticBuffer (Lcom/mojang/blaze3d/audio/SoundBuffer;)V m_83656_
+		0 p_83657_ TEST
+	calculateBufferSize (Ljavax/sound/sampled/AudioFormat;I)I m_83660_
+		static
+		0 p_83661_ p_83661_test
+		1 p_83662_ p_83662_test

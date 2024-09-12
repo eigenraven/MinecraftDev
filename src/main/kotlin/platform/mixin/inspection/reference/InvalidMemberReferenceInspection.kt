@@ -33,7 +33,6 @@ import com.intellij.psi.JavaElementVisitor
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.PsiLiteral
 import com.intellij.psi.PsiNameValuePair
 
 class InvalidMemberReferenceInspection : MixinInspection() {
@@ -68,10 +67,10 @@ class InvalidMemberReferenceInspection : MixinInspection() {
 
             // Attempt to parse the reference
             when (value) {
-                is PsiLiteral -> checkMemberReference(value, value.constantStringValue)
                 is PsiArrayInitializerMemberValue -> value.initializers.forEach {
                     checkMemberReference(it, it.constantStringValue)
                 }
+                else -> checkMemberReference(value, value.constantStringValue)
             }
         }
 

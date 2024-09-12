@@ -1,0 +1,110 @@
+<!--
+    Minecraft Development for IntelliJ
+
+    https://mcdev.io/
+
+    Copyright (C) 2024 minecraft-dev
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, version 3.0 only.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<idea-plugin>
+    <id>io.mcdev.obfex</id>
+    <name>Obfuscation Explorer</name>
+    <vendor email="kyle@denwav.dev" url="https://minecraftdev.org/">DemonWav</vendor>
+
+    <description><![CDATA[
+      Support for a variety of Java obfuscation systems and obfuscation formats. Provides stacktrace unscrambling and
+      obfuscated / deobfuscated name lookup, as well as hooks for other plugins to query remapped symbol names.
+    ]]></description>
+
+    <extensionPoints>
+        <extensionPoint name="mappingsFormatParser" interface="io.mcdev.obfex.mappings.MappingsFormatParser" dynamic="true" />
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="io.mcdev.obfex">
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.csrg.CSrgMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.enigma.EnigmaMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.srg.SrgMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.jam.JamMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.proguard.ProGuardMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.tinyv1.TinyV1MappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.tinyv2.TinyV2MappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.tsrg.TSrgMappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.tsrg2.TSrg2MappingsFormatParser"  />
+        <mappingsFormatParser implementation="io.mcdev.obfex.formats.xsrg.XSrgMappingsFormatParser"  />
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <facetType implementation="io.mcdev.obfex.facet.ObfExFacetType" />
+
+        <fileType name="SRG" language="SRG" implementationClass="io.mcdev.obfex.formats.srg.lang.SrgFileType" fieldName="INSTANCE" extensions="srg" />
+        <lang.parserDefinition language="SRG" implementationClass="io.mcdev.obfex.formats.srg.lang.SrgParserDefinition" />
+        <lang.syntaxHighlighterFactory language="SRG" implementationClass="io.mcdev.obfex.formats.srg.lang.colors.SrgSyntaxHighlighterFactory" />
+        <annotator language="SRG" implementationClass="io.mcdev.obfex.formats.srg.lang.colors.SrgAnnotator" />
+
+        <fileType name="XSRG" language="XSRG" implementationClass="io.mcdev.obfex.formats.xsrg.lang.XSrgFileType" fieldName="INSTANCE" extensions="xsrg" />
+        <lang.parserDefinition language="XSRG" implementationClass="io.mcdev.obfex.formats.xsrg.lang.XSrgParserDefinition" />
+        <lang.syntaxHighlighterFactory language="XSRG" implementationClass="io.mcdev.obfex.formats.srg.lang.colors.SrgSyntaxHighlighterFactory" />
+
+        <fileType name="CSRG" language="CSRG" implementationClass="io.mcdev.obfex.formats.csrg.lang.CSrgFileType" fieldName="INSTANCE" extensions="csrg" />
+        <lang.parserDefinition language="CSRG" implementationClass="io.mcdev.obfex.formats.csrg.lang.CSrgParserDefinition" />
+        <lang.syntaxHighlighterFactory language="CSRG" implementationClass="io.mcdev.obfex.formats.csrg.lang.colors.CSrgSyntaxHighlighterFactory" />
+        <annotator language="CSRG" implementationClass="io.mcdev.obfex.formats.csrg.lang.colors.CSrgAnnotator" />
+
+        <fileType name="TSRG" language="TSRG" implementationClass="io.mcdev.obfex.formats.tsrg.lang.TSrgFileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="TSRG" implementationClass="io.mcdev.obfex.formats.tsrg.lang.TSrgParserDefinition" />
+        <lang.syntaxHighlighterFactory language="TSRG" implementationClass="io.mcdev.obfex.formats.tsrg.lang.colors.TSrgSyntaxHighlighterFactory" />
+        <annotator language="TSRG" implementationClass="io.mcdev.obfex.formats.tsrg.lang.colors.TSrgAnnotator" />
+        <fileTypeDetector implementation="io.mcdev.obfex.formats.tsrg.lang.TSrgFileTypeDetector" />
+        <langCodeStyleSettingsProvider implementation="io.mcdev.obfex.formats.tsrg.TSrgLanguageCodeStyleSettingsProvider" />
+
+        <fileType name="TSRGv2" language="TSRGv2" implementationClass="io.mcdev.obfex.formats.tsrg2.lang.TSrg2FileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="TSRGv2" implementationClass="io.mcdev.obfex.formats.tsrg2.lang.TSrg2ParserDefinition" />
+        <lang.syntaxHighlighterFactory language="TSRGv2" implementationClass="io.mcdev.obfex.formats.tsrg2.lang.colors.TSrg2SyntaxHighlighterFactory" />
+        <annotator language="TSRGv2" implementationClass="io.mcdev.obfex.formats.tsrg2.lang.colors.TSrg2Annotator" />
+        <highlightVisitor implementation="io.mcdev.obfex.formats.tsrg2.lang.colors.TSrg2RainbowVisitor" />
+        <langCodeStyleSettingsProvider implementation="io.mcdev.obfex.formats.tsrg2.TSrg2LanguageCodeStyleSettingsProvider" />
+
+        <fileType name="JAM" language="JAM" implementationClass="io.mcdev.obfex.formats.jam.lang.JamFileType" fieldName="INSTANCE" extensions="jam" />
+        <lang.parserDefinition language="JAM" implementationClass="io.mcdev.obfex.formats.jam.lang.JamParserDefinition" />
+        <lang.syntaxHighlighterFactory language="JAM" implementationClass="io.mcdev.obfex.formats.jam.lang.colors.JamSyntaxHighlighterFactory" />
+        <annotator language="JAM" implementationClass="io.mcdev.obfex.formats.jam.lang.colors.JamAnnotator" />
+
+        <fileType name="Enigma" language="Enigma" implementationClass="io.mcdev.obfex.formats.enigma.lang.EnigmaFileType" fieldName="INSTANCE" extensions="mapping;mappings" />
+        <lang.parserDefinition language="Enigma" implementationClass="io.mcdev.obfex.formats.enigma.lang.EnigmaParserDefinition" />
+        <lang.syntaxHighlighterFactory language="Enigma" implementationClass="io.mcdev.obfex.formats.enigma.lang.colors.EnigmaSyntaxHighlighterFactory" />
+        <annotator language="Enigma" implementationClass="io.mcdev.obfex.formats.enigma.lang.colors.EnigmaAnnotator" />
+        <langCodeStyleSettingsProvider implementation="io.mcdev.obfex.formats.enigma.EnigmaLanguageCodeStyleSettingsProvider" />
+
+        <fileType name="Tiny v1" language="TinyV1" implementationClass="io.mcdev.obfex.formats.tinyv1.lang.TinyV1FileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="TinyV1" implementationClass="io.mcdev.obfex.formats.tinyv1.lang.TinyV1ParserDefinition" />
+        <lang.syntaxHighlighterFactory language="TinyV1" implementationClass="io.mcdev.obfex.formats.tinyv1.lang.colors.TinyV1SyntaxHighlighterFactory" />
+        <annotator language="TinyV1" implementationClass="io.mcdev.obfex.formats.tinyv1.lang.colors.TinyV1Annotator" />
+        <highlightVisitor implementation="io.mcdev.obfex.formats.tinyv1.lang.colors.TinyV1RainbowVisitor" />
+        <fileTypeDetector implementation="io.mcdev.obfex.formats.tinyv1.lang.TinyFileTypeDetector" />
+
+        <fileType name="Tiny v2" language="TinyV2" implementationClass="io.mcdev.obfex.formats.tinyv2.lang.TinyV2FileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="TinyV2" implementationClass="io.mcdev.obfex.formats.tinyv2.lang.TinyV2ParserDefinition" />
+        <lang.syntaxHighlighterFactory language="TinyV2" implementationClass="io.mcdev.obfex.formats.tinyv2.lang.colors.TinyV2SyntaxHighlighterFactory" />
+        <annotator language="TinyV2" implementationClass="io.mcdev.obfex.formats.tinyv2.lang.colors.TinyV2Annotator" />
+        <highlightVisitor implementation="io.mcdev.obfex.formats.tinyv2.lang.colors.TinyV2RainbowVisitor" />
+        <langCodeStyleSettingsProvider implementation="io.mcdev.obfex.formats.tinyv2.TinyV2LanguageCodeStyleSettingsProvider" />
+
+        <fileType name="ProGuard" language="ProGuard" implementationClass="io.mcdev.obfex.formats.proguard.lang.ProGuardFileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="ProGuard" implementationClass="io.mcdev.obfex.formats.proguard.lang.ProGuardParserDefinition" />
+        <lang.syntaxHighlighterFactory language="ProGuard" implementationClass="io.mcdev.obfex.formats.proguard.lang.colors.ProGuardSyntaxHighlighterFactory" />
+        <annotator language="ProGuard" implementationClass="io.mcdev.obfex.formats.proguard.lang.colors.ProGuardAnnotator" />
+        <fileTypeDetector implementation="io.mcdev.obfex.formats.proguard.lang.ProGuardFileTypeDetector" />
+    </extensions>
+</idea-plugin>

@@ -20,6 +20,7 @@
 
 package com.demonwav.mcdev.util
 
+import com.demonwav.mcdev.creator.custom.model.TemplateApi
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.PreReleasePart
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.ReleasePart
 import com.demonwav.mcdev.util.SemanticVersion.Companion.VersionPart.TextPart
@@ -30,6 +31,7 @@ import java.net.URLDecoder
  * Each constituent part (delimited by periods in a version string) contributes
  * to the version ranking with decreasing priority from left to right.
  */
+@TemplateApi
 class SemanticVersion(
     val parts: List<VersionPart>,
     private val buildMetadata: String = "",

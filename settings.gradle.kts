@@ -23,6 +23,7 @@ plugins {
 }
 
 rootProject.name = "MinecraftDev"
+include("obfuscation-explorer")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

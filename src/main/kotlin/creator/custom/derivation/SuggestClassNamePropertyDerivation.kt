@@ -33,10 +33,13 @@ class SuggestClassNamePropertyDerivation : PreparedDerivation {
     override fun derive(parentValues: List<Any?>): Any? {
         val coords = parentValues[0] as BuildSystemCoordinates
         val name = parentValues[1] as String
-        return ClassFqn("${coords.groupId}.${name.decapitalize()}.${name.capitalize()}")
+        val sanitizedName = name.split(NOT_JAVA_IDENTIFIER).joinToString("", transform = String::capitalize)
+        return ClassFqn("${coords.groupId}.${sanitizedName.decapitalize()}.$sanitizedName")
     }
 
     companion object : PropertyDerivationFactory {
+
+        private val NOT_JAVA_IDENTIFIER = Regex("\\P{javaJavaIdentifierPart}+")
 
         override fun create(
             reporter: TemplateValidationReporter,

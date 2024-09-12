@@ -31,6 +31,10 @@ import java.io.EOFException
 
 class NbtFileTypeDetector : FileTypeRegistry.FileTypeDetector {
     override fun detect(file: VirtualFile, firstBytes: ByteSequence, firstCharsIfText: CharSequence?): FileType? {
+        if (firstCharsIfText != null) {
+            return null
+        }
+
         return try {
             // 20 ms is plenty of time to parse most files
             // Won't parse very large files, but if we fail on timeout then those files probably are NBT anyways

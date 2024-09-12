@@ -1,0 +1,94 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="io.mcdev.obfex.formats.tinyv2.gen.parser.TinyV2Parser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+    psiClassPrefix="TinyV2"
+    psiImplClassSuffix="Impl"
+    psiPackage="io.mcdev.obfex.formats.tinyv2.gen.psi"
+    psiImplPackage="io.mcdev.obfex.formats.tinyv2.gen.psi.impl"
+
+    elementTypeHolderClass="io.mcdev.obfex.formats.tinyv2.gen.psi.TinyV2Types"
+    elementTypeClass="io.mcdev.obfex.formats.tinyv2.lang.psi.TinyV2ElementType"
+    tokenTypeClass="io.mcdev.obfex.formats.tinyv2.lang.psi.TinyV2TokenType"
+
+    tokens=[
+        COMMENT="regexp:\s*#.*"
+    ]
+
+//    consumeTokenMethod="consumeTokenFast"
+}
+
+tinyv2_file ::= file_element?
+file_element ::= header (line_end property*)? class_mapping*
+
+header ::= TINY_KEY VERSION_NUM VERSION_NUM namespace* {pin=1 recoverWhile=header_recover} {
+    methods=[
+        majorVersionNum="/VERSION_NUM[0]"
+        minorVersionNum="/VERSION_NUM[1]"
+    ]
+}
+private header_recover ::= !line_end
+
+namespace ::= NAMESPACE_KEY
+
+property ::= PROPERTY_KEY PROPERTY_VALUE? line_end {
+    methods=[
+        propertyKey="/PROPERTY_KEY"
+        propergyValue="/PROPERTY_VALUE"
+    ]
+}
+
+private line_end ::= <<eof>> | CRLF+
+
+class_mapping ::= CLASS_KEY mapping_part* line_end class_member* {pin=1 recoverWhile=class_recover}
+private class_recover ::= !CLASS_KEY
+
+doc_line ::= COMMENT_KEY DOC_TEXT? line_end {pin=1}
+
+class_member ::= doc_line | method_mapping | field_mapping {recoverWhile=member_recover}
+private member_recover ::= !(METHOD_KEY | FIELD_KEY | CLASS_KEY)
+method_mapping ::= METHOD_KEY method_signature mapping_part* line_end method_member* {pin=1}
+
+method_member ::= doc_line | param_mapping | local_var_mapping
+
+param_mapping ::= PARAM_KEY param_index mapping_part* line_end doc_line* {pin=1 recoverWhile=param_recover}
+private param_recover ::= !(PARAM_KEY | VAR_KEY | METHOD_KEY | FIELD_KEY | CLASS_KEY)
+param_index ::= DIGIT
+
+local_var_mapping ::= VAR_KEY local_var_index local_var_start lvt_index? mapping_part* line_end doc_line* {pin=1 recoverWhile=local_var_recover}
+private local_var_recover ::= !(VAR_KEY | PARAM_KEY | METHOD_KEY | FIELD_KEY | CLASS_KEY)
+local_var_index ::= DIGIT
+local_var_start ::= DIGIT
+lvt_index ::= DIGIT
+
+field_mapping ::= FIELD_KEY type_desc mapping_part* line_end doc_line* {pin=1}
+
+mapping_part ::=  PRIMITIVE | INIT | CLINIT | identifier
+
+type_desc ::= PRIMITIVE | CLASS_TYPE
+identifier ::= NAME_ELEMENT (SLASH NAME_ELEMENT)* {pin(".*")=1}
+
+method_signature ::= OPEN_PAREN param_types CLOSE_PAREN return_type {pin=1}
+param_types ::= type_desc*
+return_type ::= type_desc

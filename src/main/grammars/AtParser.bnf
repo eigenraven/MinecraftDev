@@ -38,7 +38,7 @@
 at_file ::= line*
 
 private line ::= !<<eof>> entry? COMMENT? end_line
-private end_line ::= crlf | <<eof>>
+private end_line ::= CRLF | <<eof>>
 
 entry ::= keyword class_name line_value? {
     mixin="com.demonwav.mcdev.platform.mcp.at.psi.mixins.impl.AtEntryImplMixin"

@@ -44,6 +44,11 @@ import org.junit.jupiter.api.Assertions
 typealias ProjectBuilderFunc =
     ProjectBuilder.(path: String, code: String, configure: Boolean, allowAst: Boolean) -> VirtualFile
 
+const val RESOURCE_ROOT = "src/test/resources"
+const val ROOT_PACKAGE = "com/demonwav/mcdev"
+const val BASE_DATA_PATH = "$RESOURCE_ROOT/$ROOT_PACKAGE"
+const val BASE_DATA_PATH_2 = "\$PROJECT_ROOT/$BASE_DATA_PATH/"
+
 val mockJdk by lazy {
     val path = findLibraryPath("mock-jdk")
     val rtFile = StandardFileSystems.local().findFileByPath(path)!!
@@ -84,39 +89,42 @@ fun createLibrary(project: Project, name: String): Library {
     }
 }
 
+fun String.filterCrlf() = this.filter { it != '\r' }
+
 fun testLexer(basePath: String, lexer: Lexer) {
     val caller = ReflectionUtil.getCallerClass(3)!!
     val text = caller.getResource(basePath)!!.readText().trim()
 
-    val expected = caller.getResource("${basePath.substringBeforeLast('.')}.txt")!!.readText().trim()
-    val actual = LexerTestCase.printTokens(text.filter { it != '\r' }, 0, lexer)
+    val expected = caller.getResource("${basePath.substringBeforeLast('.')}.txt")?.readText()?.trim()
+        ?: Assertions.fail("no test data")
+    val actual = LexerTestCase.printTokens(text.filterCrlf(), 0, lexer).trim()
 
-    val expectedLines = expected.lineSequence().filter { it.isNotBlank() }.toList()
-    val actualLines = actual.lineSequence().filter { it.isNotBlank() }.toList()
-    Assertions.assertLinesMatch(expectedLines, actualLines)
+    Assertions.assertEquals(expected.filterCrlf(), actual.filterCrlf())
 }
 
 fun ProjectBuilderTest.testParser(basePath: String, func: ProjectBuilderFunc) {
     val caller = ReflectionUtil.getCallerClass(3)!!
-    val text = caller.getResource(basePath).readText().trim()
-    val expected = caller.getResource("${basePath.substringBeforeLast('.')}.txt").readText().trim()
+    val text = caller.getResource(basePath)?.readText()?.trim() ?: Assertions.fail("no test data")
+    val expected = caller.getResource("${basePath.substringBeforeLast('.')}.txt")?.readText()?.trim()
+        ?: Assertions.fail("no expected data")
 
     var file: PsiFile? = null
     buildProject {
         file = func(basePath.substringAfterLast('/'), text, true, false).toPsiFile()
     }
 
-    val actual = DebugUtil.psiToString(file!!, true, true)
+    val actual = DebugUtil.psiToString(file!!, true, true).trim()
 
-    val expectedLines = expected.lineSequence().filter { it.isNotBlank() }.toList()
-    val actualLines = actual.lineSequence().filter { it.isNotBlank() }.toList()
-    Assertions.assertLinesMatch(expectedLines, actualLines)
+    Assertions.assertEquals(expected.filterCrlf(), actual.filterCrlf())
 }
 
 fun testInspectionFix(fixture: JavaCodeInsightTestFixture, basePath: String, fixName: String) {
     val caller = ReflectionUtil.getCallerClass(4)!!
-    val original = caller.getResource("$basePath.java").readText().trim().lineSequence().joinToString("\n")
-    val expected = caller.getResource("$basePath.after.java").readText().trim().lineSequence().joinToString("\n")
+    val original =
+        caller.getResource("$basePath.java")?.readText()?.trim()?.lineSequence()?.joinToString("\n")
+            ?: Assertions.fail("no test data")
+    val expected = caller.getResource("$basePath.after.java")?.readText()?.trim()?.lineSequence()
+        ?.joinToString("\n") ?: Assertions.fail("no expected data")
 
     fixture.configureByText(JavaFileType.INSTANCE, original)
     val intention = fixture.findSingleIntention(fixName)

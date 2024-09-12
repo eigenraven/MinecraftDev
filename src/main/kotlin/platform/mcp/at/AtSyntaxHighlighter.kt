@@ -32,7 +32,7 @@ class AtSyntaxHighlighter : SyntaxHighlighterBase() {
 
     override fun getHighlightingLexer() = AtLexerAdapter()
 
-    override fun getTokenHighlights(tokenType: IElementType) =
+    override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> =
         when (tokenType) {
             AtTypes.KEYWORD_ELEMENT -> KEYWORD_KEYS
             AtTypes.CLASS_NAME_ELEMENT -> CLASS_NAME_KEYS
@@ -42,7 +42,7 @@ class AtSyntaxHighlighter : SyntaxHighlighterBase() {
             AtTypes.PRIMITIVE -> PRIMITIVE_KEYS
             AtTypes.COMMENT -> COMMENT_KEYS
             TokenType.BAD_CHARACTER -> BAD_CHARACTER_KEYS
-            else -> EMPTY_KEYS
+            else -> TextAttributesKey.EMPTY_ARRAY
         }
 
     companion object {
@@ -70,6 +70,5 @@ class AtSyntaxHighlighter : SyntaxHighlighterBase() {
         private val PRIMITIVE_KEYS = arrayOf(PRIMITIVE)
         private val COMMENT_KEYS = arrayOf(COMMENT)
         private val BAD_CHARACTER_KEYS = arrayOf(BAD_CHARACTER)
-        private val EMPTY_KEYS = emptyArray<TextAttributesKey>()
     }
 }

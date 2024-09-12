@@ -27,7 +27,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputDirectory
@@ -62,6 +61,7 @@ abstract class ParserExec : JavaExec() {
     init {
         mainClass.set("org.intellij.grammar.Main")
 
+        @Suppress("LeakingThis")
         jvmArgs(
             "--add-opens", "java.base/java.lang=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",

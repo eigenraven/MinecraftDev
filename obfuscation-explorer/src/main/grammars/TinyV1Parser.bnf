@@ -1,0 +1,67 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="io.mcdev.obfex.formats.tinyv1.gen.parser.TinyV1Parser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+    psiClassPrefix="TinyV1"
+    psiImplClassSuffix="Impl"
+    psiPackage="io.mcdev.obfex.formats.tinyv1.gen.psi"
+    psiImplPackage="io.mcdev.obfex.formats.tinyv1.gen.psi.impl"
+
+    elementTypeHolderClass="io.mcdev.obfex.formats.tinyv1.gen.psi.TinyV1Types"
+    elementTypeClass="io.mcdev.obfex.formats.tinyv1.lang.psi.TinyV1ElementType"
+    tokenTypeClass="io.mcdev.obfex.formats.tinyv1.lang.psi.TinyV1TokenType"
+
+    tokens=[
+        COMMENT="regexp:\s*#.*"
+    ]
+
+    // do not record error reporting information in recover rules
+    consumeTokenMethod(".*_recover")="consumeTokenFast"
+}
+
+tinyv1_file ::= file_element?
+file_element ::= header line_end line*
+
+header ::= V1_KEY namespace* {pin=1}
+namespace ::= NAMESPACE_KEY
+
+private line_end ::= <<eof>> | CRLF
+private line_recover ::= !(mapping | line_end)
+
+private line ::= !<<eof>> mapping? line_end {pin=2 recoverWhile=line_recover}
+
+mapping ::= class_mapping | field_mapping | method_mapping
+
+class_mapping ::= CLASS_KEY mapping_part* {pin=1}
+field_mapping ::= FIELD_KEY mapping_part type_desc mapping_part* {pin=1}
+method_mapping ::= METHOD_KEY mapping_part method_signature mapping_part* {pin=1}
+
+mapping_part ::=  PRIMITIVE | identifier
+type_desc ::= PRIMITIVE | CLASS_TYPE
+identifier ::= name_part (SLASH name_part)* {pin(".*")=1}
+name_part ::= NAME_ELEMENT
+
+method_signature ::= OPEN_PAREN param_types CLOSE_PAREN return_type {pin=1}
+param_types ::= type_desc*
+return_type ::= type_desc

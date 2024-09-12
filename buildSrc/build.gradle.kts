@@ -18,8 +18,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(8)
+}
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 repositories {
@@ -28,6 +37,11 @@ repositories {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.9.1")
-    implementation("org.cadixdev.licenser:org.cadixdev.licenser.gradle.plugin:0.6.1")
+    // hack for version catalogs
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(libs.gson)
+    implementation(libs.kotlin.plugin)
+    implementation(libs.intellij.plugin)
+    implementation(libs.licenser.plugin)
+    implementation(libs.changelog.plugin)
 }

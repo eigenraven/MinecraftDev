@@ -146,7 +146,6 @@ class MinecraftFacet(
     }
 
     private fun register(type: AbstractModuleType<*>): AbstractModule {
-        type.performCreationSettingSetup(module.project)
         val module = type.generateModule(this)
         moduleMap[type] = module
         return module
@@ -255,7 +254,7 @@ class MinecraftFacet(
         val ID = FacetTypeId<MinecraftFacet>(TYPE_ID)
 
         val facetType: MinecraftFacetType
-            get() = FacetTypeRegistry.getInstance().findFacetType(ID) as MinecraftFacetType
+            get() = facetTypeOrNull as MinecraftFacetType
 
         val facetTypeOrNull: MinecraftFacetType?
             get() = FacetTypeRegistry.getInstance().findFacetType(TYPE_ID) as? MinecraftFacetType

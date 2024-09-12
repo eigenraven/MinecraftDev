@@ -23,11 +23,8 @@ package com.demonwav.mcdev.platform
 import com.demonwav.mcdev.facet.MinecraftFacet
 import com.demonwav.mcdev.insight.generation.ui.EventGenerationPanel
 import com.demonwav.mcdev.util.findContainingClass
-import com.intellij.codeInspection.ex.EntryPointsManager
-import com.intellij.codeInspection.ex.EntryPointsManagerBase
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -55,17 +52,6 @@ abstract class AbstractModuleType<out T : AbstractModule>(val groupId: String, v
     open fun classToColorMappings(module: Module): Map<String, Color> = this.colorMap
 
     abstract fun generateModule(facet: MinecraftFacet): T
-
-    fun performCreationSettingSetup(project: Project) {
-        if (project.isDisposed) {
-            return
-        }
-        val manager = EntryPointsManager.getInstance(project)
-        val annotations = (manager as? EntryPointsManagerBase)?.customAdditionalAnnotations?.toMutableList() ?: return
-        ignoredAnnotations.asSequence()
-            .filter { annotation -> !annotations.contains(annotation) }
-            .forEach { annotations.add(it) }
-    }
 
     open fun getEventGenerationPanel(chosenClass: PsiClass): EventGenerationPanel {
         return EventGenerationPanel(chosenClass)

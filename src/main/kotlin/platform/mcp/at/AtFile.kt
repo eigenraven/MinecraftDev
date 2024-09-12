@@ -47,6 +47,6 @@ class AtFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, AtLangu
     }
 
     override fun getFileType() = AtFileType
-    override fun toString() = "Access Transformer File"
+    override fun toString() = AtFileType.description
     override fun getIcon(flags: Int) = PlatformAssets.MCP_ICON
 }

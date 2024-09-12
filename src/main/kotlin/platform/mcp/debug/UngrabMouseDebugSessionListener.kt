@@ -41,7 +41,7 @@ class UngrabMouseDebugSessionListener(private val process: DebugProcessImpl) : X
 
         val frameProxy = suspendContextImpl.frameProxy ?: return
         val debugProcess = suspendContextImpl.debugProcess
-        val virtualMachine = debugProcess.virtualMachineProxy as? VirtualMachineProxyImpl ?: return
+        val virtualMachine = debugProcess.virtualMachineProxy
         val evaluationContext = EvaluationContextImpl(suspendContextImpl, frameProxy)
 
         val mouseClass = virtualMachine.classesByName("org.lwjgl.input.Mouse")?.singleOrNull() as? ClassType

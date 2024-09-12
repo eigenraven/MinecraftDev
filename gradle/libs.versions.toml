@@ -1,13 +1,33 @@
 [versions]
-coroutines = "1.8.0"
-junit = "5.10.0"
-junit-platform = "1.10.0"
-asm = "9.7"
+kotlin = "2.0.20"
+coroutines = "1.9.0-RC.2"
+junit = "5.10.2"
+junit-platform = "1.10.2"
+asm = "9.6"
 fuel = "2.3.1"
+licenser = "0.6.1"
+changelog = "2.2.0"
+intellij-plugin = "2.0.1"
+intellij-ide = "2024.2"
+idea-ext = "1.1.8"
+psiPlugin = "242.4697"
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-plugin" }
+idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
+licenser = { id = "org.cadixdev.licenser", version.ref = "licenser" }
+changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 
 [libraries]
-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+kotlin-plugin = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+
+intellij-plugin = { module = "org.jetbrains.intellij.platform:org.jetbrains.intellij.platform.gradle.plugin", version.ref = "intellij-plugin" }
+licenser-plugin = { module = "org.cadixdev.licenser:org.cadixdev.licenser.gradle.plugin", version.ref = "licenser" }
+changelog-plugin = { module = "org.jetbrains.changelog:org.jetbrains.changelog.gradle.plugin", version.ref = "changelog" }
+
 coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 
 mappingIo = "net.fabricmc:mapping-io:0.2.1"
@@ -28,18 +48,23 @@ asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
 asm-analysis = { module = "org.ow2.asm:asm-analysis", version.ref = "asm" }
 asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
 
+gson = "com.google.code.gson:gson:2.10.1"
+
 fuel = { module = "com.github.kittinunf.fuel:fuel", version.ref = "fuel" }
 fuel-coroutines = { module = "com.github.kittinunf.fuel:fuel-coroutines", version.ref = "fuel" }
 
 # Testing
 test-mockJdk = "org.jetbrains.idea:mock-jdk:1.7-4d76c50"
 test-mixin = "org.spongepowered:mixin:0.8.5"
+test-spigotapi = "org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT"
+test-bungeecord = "net.md-5:bungeecord-api:1.21-R0.1-SNAPSHOT"
 test-spongeapi = "org.spongepowered:spongeapi:7.4.0"
 test-fabricloader = "net.fabricmc:fabric-loader:0.15.11"
 test-nbt = "com.demonwav.mcdev:all-types-nbt:1.0"
 
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
-junit-entine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
 
 mixinExtras-common = "io.github.llamalad7:mixinextras-common:0.5.0-beta.1"

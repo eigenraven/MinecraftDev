@@ -21,6 +21,7 @@
 package com.demonwav.mcdev.inspection
 
 import com.demonwav.mcdev.asset.MCDevBundle
+import com.demonwav.mcdev.platform.PlatformType
 import com.intellij.codeInspection.reference.EntryPoint
 import com.intellij.codeInspection.reference.RefElement
 import com.intellij.openapi.util.InvalidDataException
@@ -34,8 +35,7 @@ class PlatformAnnotationEntryPoint : EntryPoint() {
     override fun isEntryPoint(psiElement: PsiElement) = false
     override fun isSelected() = false
     override fun setSelected(selected: Boolean) {}
-    override fun getIgnoreAnnotations() =
-        arrayOf("org.spongepowered.api.event.Listener", "org.bukkit.event.EventHandler")
+    override fun getIgnoreAnnotations() = PlatformType.entries.flatMap { it.type.ignoredAnnotations }.toTypedArray()
 
     @Throws(InvalidDataException::class)
     override fun readExternal(element: Element) {

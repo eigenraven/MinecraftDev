@@ -1,0 +1,15 @@
+tiny	2	0	official	intermediary	named
+	someProperty	someValue
+	anotherProperty
+c	a	class_123	pkg/SomeClass
+	c Class comment
+	m	(III)V	a	method_456	someMethod
+		p	1		param_0	x
+			c Param comment
+		p	2		param_1	y
+		p	3		param_2	z
+		c	Method comment
+	f	[I	a	field_789	someField
+		c	Field comment
+c	b	class_234	pkg/xy/AnotherClass
+	m	(Ljava/lang/String;)I	a	method_567	anotherMethod

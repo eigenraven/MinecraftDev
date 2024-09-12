@@ -65,8 +65,8 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
             return null
         }
 
-        val description = entry.description.joinToString("\n")
-        return if (description.isNotBlank()) {
+        val description = entry.description.filter { it.isNotBlank() }
+        return if (description.isNotEmpty()) {
             TomlSchemaKeyElement(entry.key, description, psiManager)
         } else {
             null
@@ -75,7 +75,7 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
 
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
         if (element is TomlSchemaKeyElement) {
-            return element.description
+            return generateDoc(element.description)
         }
 
         if (element !is TomlKeySegment || !isModsToml(originalElement)) {
@@ -85,7 +85,7 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
         val key = element.parentOfType<TomlKey>() ?: return null
         val schema = ModsTomlSchema.get(element.project)
         val table = element.parentOfType<TomlKeyValueOwner>()
-        val description = when (val parent = key.parent) {
+        val lines = when (val parent = key.parent) {
             is TomlTableHeader -> {
                 if (element != parent.key?.segments?.firstOrNull()) {
                     return null
@@ -102,15 +102,18 @@ class ModsTomlDocumentationProvider : DocumentationProvider {
             }
             else -> null
         }?.takeUnless { it.isEmpty() } ?: return null
-        return DocumentationMarkup.CONTENT_START + description.joinToString("<br>") + DocumentationMarkup.CONTENT_END
+        return generateDoc(lines)
     }
+
+    private fun generateDoc(lines: List<String>): String =
+        DocumentationMarkup.CONTENT_START + lines.joinToString("<br>") + DocumentationMarkup.CONTENT_END
 
     private fun isModsToml(element: PsiElement?): Boolean =
         element?.containingFile?.virtualFile?.name in ForgeTomlConstants.FILE_NAMES
 
     private class TomlSchemaKeyElement(
         val key: String,
-        val description: String,
+        val description: List<String>,
         val psiManager: PsiManager
     ) : FakePsiElement() {
 

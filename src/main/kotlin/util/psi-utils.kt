@@ -103,13 +103,9 @@ private val PsiElement.ancestors: Sequence<PsiElement>
 
 fun PsiElement.isAncestorOf(child: PsiElement): Boolean = child.ancestors.contains(this)
 
-private inline fun <reified T : PsiElement> PsiElement.findParent(resolveReferences: Boolean): T? {
-    return findParent(resolveReferences) { false }
-}
-
 private inline fun <reified T : PsiElement> PsiElement.findParent(
     resolveReferences: Boolean,
-    stop: (PsiElement) -> Boolean,
+    stop: (PsiElement) -> Boolean = { false },
 ): T? {
     var el: PsiElement = this
 

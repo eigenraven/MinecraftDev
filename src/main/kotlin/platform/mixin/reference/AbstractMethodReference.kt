@@ -43,7 +43,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiLiteral
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
@@ -111,9 +110,8 @@ abstract class AbstractMethodReference : PolyReferenceResolver(), MixinReference
     private fun resolve(context: PsiElement): Sequence<ClassAndMethodNode>? {
         val targets = getTargets(context) ?: return null
         val targetedMethods = when (context) {
-            is PsiLiteral -> context.constantStringValue?.let { listOf(it) } ?: emptyList()
             is PsiArrayInitializerMemberValue -> context.initializers.mapNotNull { it.constantStringValue }
-            else -> emptyList()
+            else -> context.constantStringValue?.let { listOf(it) } ?: emptyList()
         }
 
         return targetedMethods.asSequence().flatMap { method ->
@@ -141,9 +139,8 @@ abstract class AbstractMethodReference : PolyReferenceResolver(), MixinReference
         val targets = getTargets(context) ?: return null
 
         val targetedMethods = when (context) {
-            is PsiLiteral -> context.constantStringValue?.let { listOf(it) } ?: emptyList()
             is PsiArrayInitializerMemberValue -> context.initializers.mapNotNull { it.constantStringValue }
-            else -> emptyList()
+            else -> context.constantStringValue?.let { listOf(it) } ?: emptyList()
         }
 
         return targetedMethods.asSequence().flatMap { method ->

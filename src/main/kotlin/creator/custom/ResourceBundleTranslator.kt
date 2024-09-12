@@ -32,12 +32,12 @@ abstract class ResourceBundleTranslator {
     abstract val bundle: ResourceBundle?
 
     @Nls
-    fun translate(key: @NonNls String): String {
+    fun translate(@NonNls key: String): String {
         return translateOrNull(key) ?: StringUtil.escapeMnemonics(key)
     }
 
     @Nls
-    fun translateOrNull(key: @NonNls String): String? {
+    fun translateOrNull(@NonNls key: String): String? {
         if (bundle != null) {
             try {
                 return bundle!!.getString(key)

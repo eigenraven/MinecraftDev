@@ -1,0 +1,78 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="io.mcdev.obfex.formats.enigma.gen.parser.EnigmaParser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+    parserUtilClass='io.mcdev.obfex.formats.enigma.lang.psi.EnigmaParserUtil'
+
+    psiClassPrefix="Enigma"
+    psiImplClassSuffix="Impl"
+    psiPackage="io.mcdev.obfex.formats.enigma.gen.psi"
+    psiImplPackage="io.mcdev.obfex.formats.enigma.gen.psi.impl"
+
+    elementTypeHolderClass="io.mcdev.obfex.formats.enigma.gen.psi.EnigmaTypes"
+    elementTypeClass="io.mcdev.obfex.formats.enigma.lang.psi.EnigmaElementType"
+    tokenTypeClass="io.mcdev.obfex.formats.enigma.lang.psi.EnigmaTokenType"
+
+    tokens=[
+        COMMENT="regexp:\s*#.*"
+        TAB="regexp:\t"
+    ]
+
+    consumeTokenMethod="consumeTokenFast"
+}
+
+enigma_file ::= entry*
+
+private entry ::= !<<eof>> class_mapping*
+private line_end ::= <<eof>> | CRLF+
+
+external indent ::= indent0 VIRTUAL_OPEN VIRTUAL_CLOSE <<param>>
+
+class_mapping ::= CLASS_KEY class_mapping_part+ line_end <<indent class_children>>? {pin=1}
+class_mapping_part ::= mapping_part | INDEX
+
+private class_children ::= doc_line* member_mapping*
+
+member_mapping ::= field_mapping | method_mapping | class_mapping {recoverWhile=member_recover}
+private member_recover ::= !(FIELD_KEY | METHOD_KEY | (VIRTUAL_CLOSE* CLASS_KEY))
+
+doc_line ::= COMMENT_KEY DOC_TEXT? line_end {pin=1}
+
+field_mapping ::= FIELD_KEY (<<fieldMappingPart>> mapping_part)+ type_desc line_end nested_docs? {pin=1}
+
+method_mapping ::= METHOD_KEY mapping_part+ method_signature line_end <<indent method_children>>? {pin=1}
+
+private method_children ::= doc_line* arg_mapping*
+
+arg_mapping ::= ARG_KEY arg_index mapping_part line_end nested_docs? {pin=1}
+arg_index ::= INDEX
+
+private nested_docs ::= <<indent doc_line*>>
+
+mapping_part ::=  PRIMITIVE | CONSTRUCTOR | identifier
+type_desc ::= PRIMITIVE | CLASS_TYPE
+identifier ::= NAME_ELEMENT (SLASH NAME_ELEMENT)* {pin(".*")=1}
+
+method_signature ::= OPEN_PAREN param_types CLOSE_PAREN return_type
+param_types ::= type_desc*
+return_type ::= type_desc

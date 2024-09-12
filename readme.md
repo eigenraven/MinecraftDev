@@ -128,7 +128,7 @@ Developers
 License
 -------
 
-This project is licensed under [MIT](license.txt).
+This project is licensed under [LGPLv3.0-only](license.txt).
 
 Supported Platforms
 -------------------

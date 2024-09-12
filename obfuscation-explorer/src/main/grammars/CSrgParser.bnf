@@ -1,0 +1,79 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="io.mcdev.obfex.formats.csrg.gen.parser.CSrgParser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+    psiClassPrefix="CSrg"
+    psiImplClassSuffix="Impl"
+    psiPackage="io.mcdev.obfex.formats.csrg.gen.psi"
+    psiImplPackage="io.mcdev.obfex.formats.csrg.gen.psi.impl"
+
+    elementTypeHolderClass="io.mcdev.obfex.formats.csrg.gen.psi.CSrgTypes"
+    elementTypeClass="io.mcdev.obfex.formats.csrg.lang.psi.CSrgElementType"
+    tokenTypeClass="io.mcdev.obfex.formats.csrg.lang.psi.CSrgTokenType"
+
+    tokens=[
+        COMMENT="regexp:\s*#.*"
+    ]
+
+    // do not record error reporting information in recover rules
+    consumeTokenMethod(".*_recover")="consumeTokenFast"
+}
+
+csrg_file ::= line*
+
+private line ::= !<<eof>> mapping? line_end {pin=2 recoverWhile=line_recover}
+private line_end ::= <<eof>> | CRLF
+private line_recover ::= !(mapping | line_end)
+
+mapping ::= method_mapping | field_mapping | class_mapping
+
+method_mapping ::= mapping_part mapping_part method_signature mapping_part {
+    methods=[
+        obfClassName="/mapping_part[0]"
+        obfMethodName="/mapping_part[1]"
+        obfSignature="/method_signature"
+        deobfMethodName="/mapping_part[2]"
+    ]
+}
+field_mapping ::= mapping_part mapping_part mapping_part {
+    methods=[
+        obfClassName="/mapping_part[0]"
+        obfFieldName="/mapping_part[1]"
+        deobfName="/mapping_part[2]"
+    ]
+}
+class_mapping ::= mapping_part mapping_part {
+    methods=[
+        obfName="/mapping_part[0]"
+        deobfName="/mapping_part[1]"
+    ]
+}
+
+mapping_part ::=  PRIMITIVE | identifier
+type_desc ::= PRIMITIVE | CLASS_TYPE
+identifier ::= NAME_ELEMENT (SLASH NAME_ELEMENT)* {pin(".*")=1}
+
+method_signature ::= OPEN_PAREN param_types CLOSE_PAREN return_type
+param_types ::= type_desc*
+return_type ::= type_desc

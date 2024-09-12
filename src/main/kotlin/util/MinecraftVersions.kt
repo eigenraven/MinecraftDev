@@ -20,8 +20,10 @@
 
 package com.demonwav.mcdev.util
 
+import com.demonwav.mcdev.creator.custom.model.TemplateApi
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
+@TemplateApi
 object MinecraftVersions {
     val MC1_12_2 = SemanticVersion.release(1, 12, 2)
     val MC1_14_4 = SemanticVersion.release(1, 14, 4)
@@ -43,6 +45,7 @@ object MinecraftVersions {
     val MC1_20_5 = SemanticVersion.release(1, 20, 5)
     val MC1_20_6 = SemanticVersion.release(1, 20, 6)
     val MC1_21 = SemanticVersion.release(1, 21)
+    val MC1_21_1 = SemanticVersion.release(1, 21, 1)
 
     fun requiredJavaVersion(minecraftVersion: SemanticVersion) = when {
         minecraftVersion <= MC1_16_5 -> JavaSdkVersion.JDK_1_8

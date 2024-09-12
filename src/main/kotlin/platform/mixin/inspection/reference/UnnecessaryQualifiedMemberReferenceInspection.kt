@@ -34,7 +34,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiAnnotationMemberValue
 import com.intellij.psi.PsiArrayInitializerMemberValue
-import com.intellij.psi.PsiLiteral
 
 class UnnecessaryQualifiedMemberReferenceInspection : MixinAnnotationAttributeInspection("method") {
 
@@ -51,8 +50,8 @@ class UnnecessaryQualifiedMemberReferenceInspection : MixinAnnotationAttributeIn
         }
 
         when (value) {
-            is PsiLiteral -> checkMemberReference(value, holder)
             is PsiArrayInitializerMemberValue -> value.initializers.forEach { checkMemberReference(it, holder) }
+            else -> checkMemberReference(value, holder)
         }
     }
 

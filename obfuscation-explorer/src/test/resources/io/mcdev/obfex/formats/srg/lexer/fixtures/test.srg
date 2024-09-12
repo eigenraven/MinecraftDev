@@ -1,0 +1,10 @@
+# CL: yu net/minecraft/Comment
+PK: ./ net/minecraft/server
+CL: uih net/minecraft/CommentTest # CL: op uk/jr/Operator
+CL: ght net/minecraft/Test
+CL: ght$ds net/minecraft/Test$Example
+CL: ght$ds$bg net/minecraft/Test$Example$Inner
+FD: ght/rft net/minecraft/Test/log
+FD: ght$ds/juh net/minecraft/Test$Example/server
+MD: ght/hyuip (I)Z net/minecraft/Test/isEven (I)Z
+MD: ght$ds/hyuip (I)Z net/minecraft/Test$Example/isOdd (I)Z

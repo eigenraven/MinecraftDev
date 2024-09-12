@@ -35,7 +35,6 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiAnnotationMemberValue
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiBinaryExpression
-import com.intellij.psi.PsiLiteral
 
 class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection("method") {
 
@@ -53,8 +52,8 @@ class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection("method"
         }
 
         when (value) {
-            is PsiLiteral -> checkMember(value, holder)
             is PsiArrayInitializerMemberValue -> value.initializers.forEach { checkMember(it, holder) }
+            else -> checkMember(value, holder)
         }
     }
 
@@ -80,7 +79,7 @@ class AmbiguousReferenceInspection : MixinAnnotationAttributeInspection("method"
 
             val elementFactory = JavaPsiFacade.getElementFactory(project)
 
-            if (constantValue != null && element is PsiLiteral) {
+            if (constantValue != null) {
                 val newLiteral = "\"${StringUtil.escapeStringCharacters("$constantValue*")}\""
                 element.replace(elementFactory.createExpressionFromText(newLiteral, null))
             } else {

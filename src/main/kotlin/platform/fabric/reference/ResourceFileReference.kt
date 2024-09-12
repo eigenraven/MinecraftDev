@@ -129,7 +129,7 @@ class ResourceFileReference(
         val relevantModules = mutableSetOf<Module>()
         val moduleManager = ModuleManager.getInstance(element.project)
         ModuleUtilCore.getDependencies(module, relevantModules)
-        relevantModules.flatMapTo(relevantModules) {
+        relevantModules.toList().flatMapTo(relevantModules) {
             moduleManager.getModuleDependentModules(it)
         }
         return relevantModules

@@ -21,12 +21,12 @@
 package com.demonwav.mcdev.toml.platform.forge.completion
 
 import com.demonwav.mcdev.platform.forge.util.ForgeConstants
+import com.demonwav.mcdev.toml.TomlKeyInsertionHandler
 import com.demonwav.mcdev.toml.TomlSchemaEntry
 import com.demonwav.mcdev.toml.TomlStringValueInsertionHandler
 import com.demonwav.mcdev.toml.inModsTomlKey
 import com.demonwav.mcdev.toml.inModsTomlValueWithKey
 import com.demonwav.mcdev.toml.platform.forge.ModsTomlSchema
-import com.demonwav.mcdev.toml.toml.TomlKeyInsertionHandler
 import com.demonwav.mcdev.util.isAncestorOf
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters

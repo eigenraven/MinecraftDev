@@ -1,0 +1,81 @@
+/*
+ * Minecraft Development for IntelliJ
+ *
+ * https://mcdev.io/
+ *
+ * Copyright (C) 2024 minecraft-dev
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, version 3.0 only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+{
+    parserClass="io.mcdev.obfex.formats.tsrg2.gen.parser.TSrg2Parser"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+    parserUtilClass='io.mcdev.obfex.formats.util.sigws.SignificantWhitespaceParserUtil'
+
+    psiClassPrefix="TSrg2"
+    psiImplClassSuffix="Impl"
+    psiPackage="io.mcdev.obfex.formats.tsrg2.gen.psi"
+    psiImplPackage="io.mcdev.obfex.formats.tsrg2.gen.psi.impl"
+
+    elementTypeHolderClass="io.mcdev.obfex.formats.tsrg2.gen.psi.TSrg2Types"
+    elementTypeClass="io.mcdev.obfex.formats.tsrg2.lang.psi.TSrg2ElementType"
+    tokenTypeClass="io.mcdev.obfex.formats.tsrg2.lang.psi.TSrg2TokenType"
+
+    tokens=[
+        COMMENT="regexp:\s*#.*"
+        TAB="regexp:\t"
+    ]
+
+    consumeTokenMethod="consumeTokenFast"
+}
+
+tsrg_file ::= file_element?
+file_element ::= header entry*
+
+private line_end ::= <<eof>> | CRLF+
+
+header ::= TSRG2_KEY namespace* line_end {pin=1}
+
+namespace ::= NAMESPACE_KEY
+
+private entry ::= !<<eof>> class_mapping?
+
+external indent ::= indent0 VIRTUAL_OPEN VIRTUAL_CLOSE <<param>>
+
+class_mapping ::= mapping_part+ line_end <<indent class_children>>? {pin=1 recoverWhile=mapping_recover}
+private mapping_recover ::= !(mapping_part | VIRTUAL_CLOSE)
+
+private class_children ::= member_mapping*
+member_mapping ::= method_mapping | field_mapping {recoverWhile=mapping_recover}
+
+method_mapping ::= mapping_part method_signature mapping_part+ line_end <<indent method_members>>? {pin=2}
+private method_members ::= static_decl? param_mapping*
+
+field_mapping ::= mapping_part+ line_end <<indent static_decl>>? {pin=1}
+
+private static_decl ::= STATIC line_end {pin=1 recoverWhile=static_recover}
+private static_recover ::= !(VIRTUAL_CLOSE | DIGIT)
+
+mapping_part ::=  PRIMITIVE | INIT | CLINIT | DIGIT | identifier
+type_desc ::= PRIMITIVE | CLASS_TYPE
+identifier ::= NAME_ELEMENT (SLASH NAME_ELEMENT)* {pin(".*")=1}
+
+method_signature ::= OPEN_PAREN param_types CLOSE_PAREN return_type {pin=1}
+param_types ::= type_desc*
+return_type ::= type_desc
+
+param_mapping ::= param_index mapping_part* line_end {pin=1 recoverWhile=param_recover}
+param_index ::= DIGIT
+private param_recover ::= !(VIRTUAL_CLOSE | DIGIT)
