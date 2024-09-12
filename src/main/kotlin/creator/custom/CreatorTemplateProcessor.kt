@@ -21,7 +21,6 @@
 package com.demonwav.mcdev.creator.custom
 
 import com.demonwav.mcdev.asset.MCDevBundle
-import com.demonwav.mcdev.asset.MCDevBundle.invoke
 import com.demonwav.mcdev.creator.custom.finalizers.CreatorFinalizer
 import com.demonwav.mcdev.creator.custom.providers.EmptyLoadedTemplate
 import com.demonwav.mcdev.creator.custom.providers.LoadedTemplate
@@ -55,12 +54,10 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.application
 import java.nio.file.Path
 import java.util.function.Consumer
-import kotlin.collections.mapNotNull
-import kotlin.collections.orEmpty
-import kotlin.collections.set
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 interface ExternalTemplatePropertyProvider {
 
@@ -286,7 +283,7 @@ class CreatorTemplateProcessor(
             }
         }
 
-        val finalizeAction = {
+        val finalizeAction = suspend {
             WriteAction.runAndWait<Throwable> {
                 LocalFileSystem.getInstance().refresh(false)
                 // Apparently a module root is required for the reformat to work
@@ -304,7 +301,7 @@ class CreatorTemplateProcessor(
         if (context.wizardContext.isCreatingNewProject) {
             TemplateService.instance.registerFinalizerAction(project, finalizeAction)
         } else {
-            application.executeOnPooledThread { finalizeAction() }
+            context.scope.launch { finalizeAction() }
         }
     }
 

@@ -39,7 +39,7 @@ class RunGradleTasksFinalizer : CreatorFinalizer {
         }
     }
 
-    override fun execute(
+    override suspend fun execute(
         context: WizardContext,
         project: Project,
         properties: Map<String, Any>,

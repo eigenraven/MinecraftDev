@@ -28,7 +28,7 @@ import org.jetbrains.plugins.gradle.service.project.open.linkAndRefreshGradlePro
 
 class ImportGradleProjectFinalizer : CreatorFinalizer {
 
-    override fun execute(
+    override suspend fun execute(
         context: WizardContext,
         project: Project,
         properties: Map<String, Any>,

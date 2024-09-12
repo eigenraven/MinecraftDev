@@ -38,7 +38,7 @@ interface CreatorFinalizer {
 
     fun validate(reporter: TemplateValidationReporter, properties: Map<String, Any>) = Unit
 
-    fun execute(
+    suspend fun execute(
         context: WizardContext,
         project: Project,
         properties: Map<String, Any>,
@@ -83,7 +83,7 @@ interface CreatorFinalizer {
             }
         }
 
-        fun executeAll(
+        suspend fun executeAll(
             context: WizardContext,
             project: Project,
             finalizers: List<Map<String, Any>>,

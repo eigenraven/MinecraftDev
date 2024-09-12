@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project
 
 class GitAddAllFinalizer : CreatorFinalizer {
 
-    override fun execute(
+    override suspend fun execute(
         context: WizardContext,
         project: Project,
         properties: Map<String, Any>,

@@ -25,13 +25,12 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import java.nio.file.Path
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.idea.maven.buildtool.MavenSyncSpec
 import org.jetbrains.idea.maven.project.MavenProjectsManager
 
 class ImportMavenProjectFinalizer : CreatorFinalizer {
 
-    override fun execute(
+    override suspend fun execute(
         context: WizardContext,
         project: Project,
         properties: Map<String, Any>,
@@ -44,9 +43,7 @@ class ImportMavenProjectFinalizer : CreatorFinalizer {
         thisLogger().info("Invoking import on EDT pomFile = ${pomFile.path}")
         val projectsManager = MavenProjectsManager.getInstance(project)
         projectsManager.addManagedFiles(listOf(pomFile))
-        runBlocking {
-            projectsManager.updateAllMavenProjects(MavenSyncSpec.incremental("ImportMavenProjectFinalizer", false))
-        }
+        projectsManager.updateAllMavenProjects(MavenSyncSpec.incremental("ImportMavenProjectFinalizer", false))
 
         thisLogger().info("Import finished")
     }
