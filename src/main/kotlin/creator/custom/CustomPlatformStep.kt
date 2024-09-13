@@ -26,13 +26,13 @@ import com.demonwav.mcdev.creator.custom.providers.EmptyLoadedTemplate
 import com.demonwav.mcdev.creator.custom.providers.LoadedTemplate
 import com.demonwav.mcdev.creator.custom.providers.TemplateProvider
 import com.demonwav.mcdev.creator.modalityState
+import com.demonwav.mcdev.util.getOrLogException
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
 import com.intellij.ide.wizard.GitNewProjectWizardData
 import com.intellij.ide.wizard.NewProjectWizardBaseData
 import com.intellij.ide.wizard.NewProjectWizardStep
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.asContextElement
-import com.intellij.openapi.diagnostic.getOrLogException
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.observable.properties.GraphProperty
 import com.intellij.openapi.observable.util.transform
@@ -50,8 +50,6 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.util.application
 import com.intellij.util.ui.AsyncProcessIcon
 import javax.swing.JLabel
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
