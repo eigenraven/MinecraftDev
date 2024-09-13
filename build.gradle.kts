@@ -34,7 +34,6 @@ plugins {
     `mcdev-publishing`
 }
 
-val ideaVersionProvider: Provider<String> = providers.gradleProperty("ideaVersion")
 val ideaVersionName: String by project
 val coreVersion: String by project
 
@@ -113,25 +112,6 @@ dependencies {
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.toml.lang")
         bundledPlugin("org.jetbrains.plugins.yaml")
-
-        testFramework(TestFrameworkType.JUnit5)
-        testFramework(TestFrameworkType.Plugin.Java)
-
-        pluginVerifier()
-    }
-
-    intellijPlatform {
-        intellijIdeaCommunity(ideaVersionProvider, useInstaller = false)
-        bundledPlugin("com.intellij.java")
-        bundledPlugin("org.jetbrains.idea.maven")
-        bundledPlugin("com.intellij.gradle")
-        bundledPlugin("org.intellij.groovy")
-        // For some reason the Kotlin plugin can't be resolved...
-        bundledPlugin("org.jetbrains.kotlin")
-        bundledPlugin("ByteCodeViewer")
-        bundledPlugin("org.intellij.intelliLang")
-        bundledPlugin("com.intellij.properties")
-        bundledPlugin("org.toml.lang")
 
         testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Plugin.Java)
