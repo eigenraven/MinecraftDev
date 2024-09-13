@@ -108,6 +108,7 @@ dependencies {
         bundledPlugin("ByteCodeViewer")
         bundledPlugin("org.intellij.intelliLang")
         bundledPlugin("com.intellij.properties")
+        bundledPlugin("com.intellij.modules.json")
 
         // Optional dependencies
         bundledPlugin("org.jetbrains.kotlin")
