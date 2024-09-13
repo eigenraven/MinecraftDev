@@ -22,12 +22,19 @@ package com.demonwav.mcdev.translations.reference
 
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.SkipAutopopupInStrings
+import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThreeState
 
 class TranslationReferenceCompletionConfidence : CompletionConfidence() {
-    override fun shouldSkipAutopopup(element: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
+
+    override fun shouldSkipAutopopup(
+        editor: Editor,
+        element: PsiElement,
+        psiFile: PsiFile,
+        offset: Int
+    ): ThreeState {
         return if (
             SkipAutopopupInStrings.isInStringLiteral(element) &&
             element.parent.references.any { it is TranslationReference }
