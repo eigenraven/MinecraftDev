@@ -299,14 +299,16 @@ fun String.getSimilarity(text: String, bonus: Int = 0): Int {
     return distance + bonus
 }
 
-fun String.isJavaKeyword() = PsiUtil.isSoftKeyword(this, LanguageLevel.HIGHEST)
+fun String.isJavaKeyword() = PsiUtil.isKeyword(this, LanguageLevel.HIGHEST)
+
+fun String.isJavaSoftKeyword() = PsiUtil.isSoftKeyword(this, LanguageLevel.HIGHEST)
 
 fun String.toJavaIdentifier(allowDollars: Boolean = true): String {
     if (this.isEmpty()) {
         return "_"
     }
 
-    if (this.isJavaKeyword()) {
+    if (this.isJavaSoftKeyword()) {
         return "_$this"
     }
 

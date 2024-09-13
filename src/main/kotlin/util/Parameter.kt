@@ -27,6 +27,6 @@ data class Parameter(val name: String?, val type: PsiType) {
     constructor(parameter: PsiParameter) : this(parameter.name, parameter.type)
 
     init {
-        assert(name?.isJavaKeyword() != true)
+        assert(name?.isJavaSoftKeyword() != true)
     }
 }
