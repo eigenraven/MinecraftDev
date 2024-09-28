@@ -31,7 +31,6 @@ import com.demonwav.mcdev.util.nullable
 import com.intellij.json.psi.JsonFile
 import com.intellij.json.psi.JsonObject
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -54,19 +53,24 @@ class MixinModule(facet: MinecraftFacet) : AbstractModule(facet) {
     override val icon: Icon? = null
 
     companion object {
-        private val mixinFileType by lazy {
-            FileTypeManager.getInstance().findFileTypeByName("Mixin Configuration") ?: FileTypes.UNKNOWN
+        private val mixinFileTypes by lazy {
+            listOfNotNull(
+                FileTypeManager.getInstance().findFileTypeByName("Mixin Json Configuration"),
+                FileTypeManager.getInstance().findFileTypeByName("Mixin Json5 Configuration")
+            )
         }
 
         fun getMixinConfigs(
             project: Project,
             scope: GlobalSearchScope,
         ): Collection<MixinConfig> {
-            return FileTypeIndex.getFiles(mixinFileType, scope)
-                .mapNotNull {
-                    (PsiManager.getInstance(project).findFile(it) as? JsonFile)?.topLevelValue as? JsonObject
+            return mixinFileTypes
+                .flatMap { FileTypeIndex.getFiles(it, scope) }
+                .mapNotNull { file ->
+                    (PsiManager.getInstance(project).findFile(file) as? JsonFile)?.topLevelValue as? JsonObject
+                }.map { jsonObject ->
+                    MixinConfig(project, jsonObject)
                 }
-                .map { MixinConfig(project, it) }
         }
 
         fun getAllMixinClasses(
@@ -93,3 +97,4 @@ class MixinModule(facet: MinecraftFacet) : AbstractModule(facet) {
         }
     }
 }
+

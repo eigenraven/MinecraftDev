@@ -362,7 +362,8 @@ inline fun <reified T> Iterable<*>.firstOfType(): T? {
     return this.firstOrNull { it is T } as? T
 }
 
-fun libraryKind(id: String): LibraryKind = LibraryKindRegistry.getInstance().findKindById(id) ?: LibraryKind.create(id)
+fun libraryKind(id: String): Lazy<LibraryKind> =
+    lazy { LibraryKindRegistry.getInstance().findKindById(id) ?: LibraryKind.create(id) }
 
 fun String.capitalize(): String =
     replaceFirstChar {

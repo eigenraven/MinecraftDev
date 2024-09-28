@@ -23,4 +23,4 @@ package com.demonwav.mcdev.platform.velocity.framework
 import com.demonwav.mcdev.util.libraryKind
 import com.intellij.openapi.roots.libraries.LibraryKind
 
-val VELOCITY_LIBRARY_KIND: LibraryKind = libraryKind("velocity-api")
+val VELOCITY_LIBRARY_KIND: LibraryKind by libraryKind("velocity-api")

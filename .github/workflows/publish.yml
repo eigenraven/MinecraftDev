@@ -39,7 +39,7 @@ jobs:
           echo "GRADLE_USER_HOME=$HOME/.gradle" >> "$GITHUB_ENV"
           echo "mcdev.deploy.token=${JETBRAINS_TOKEN}" > ~/.gradle/gradle.properties
       - name: Publish plugin
-        run: ./gradlew clean publishPlugin --no-daemon --stacktrace
+        run: ./gradlew clean :publishPlugin --no-daemon --stacktrace
       - name: Get tag name
         id: get_tag
         shell: bash

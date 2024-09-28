@@ -32,6 +32,17 @@ plugins {
     id("org.cadixdev.licenser")
 }
 
+val ideaVersionName: String by project
+val coreVersion: String by project
+val buildNumber: String? by project
+
+version = "$ideaVersionName-$coreVersion"
+
+// Build numbers are used for nightlies
+if (buildNumber != null) {
+    version = "$version-$buildNumber"
+}
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
@@ -99,7 +110,7 @@ dependencies {
     }
 
     testImplementation(libs.junit.api)
-    testCompileOnly(libs.junit.vintage) // Hack to get tests to compile and run
+    testImplementation(libs.junit.vintage) // Hack to get tests to compile and run
     testRuntimeOnly(libs.junit.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

@@ -27,8 +27,8 @@
     <depends>org.intellij.groovy</depends>
     <depends>com.intellij.properties</depends>
     <depends>ByteCodeViewer</depends>
-    <depends optional="true" config-file="toml-support.xml">org.toml.lang</depends>
-    <depends optional="true" config-file="yaml-support.xml">org.jetbrains.plugins.yaml</depends>
+    <depends optional="true" config-file="mcdev-toml.xml">org.toml.lang</depends>
+    <depends optional="true" config-file="mcdev-yaml.xml">org.jetbrains.plugins.yaml</depends>
 
     <id>com.demonwav.minecraft-dev</id>
     <name>Minecraft Development</name>
@@ -720,12 +720,20 @@
                           id="Find Mixins"/>
 
         <!-- Mixin configuration -->
-        <fileType name="Mixin Configuration" language="JSON"
-                  implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigFileType"
+        <fileType name="Mixin Json Configuration" language="JSON"
+                  implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigFileType$Json"
                   fieldName="INSTANCE"/>
         <psi.referenceContributor language="JSON"
                                   implementation="com.demonwav.mcdev.platform.mixin.config.reference.MixinConfigReferenceContributor"/>
         <lang.importOptimizer language="JSON"
+                              implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigImportOptimizer"/>
+
+        <fileType name="Mixin Json5 Configuration" language="JSON5"
+                  implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigFileType$Json5"
+                  fieldName="INSTANCE"/>
+        <psi.referenceContributor language="JSON5"
+                                  implementation="com.demonwav.mcdev.platform.mixin.config.reference.MixinConfigReferenceContributor"/>
+        <lang.importOptimizer language="JSON5"
                               implementationClass="com.demonwav.mcdev.platform.mixin.config.MixinConfigImportOptimizer"/>
 
         <!-- Mixin Line Marker Providers -->

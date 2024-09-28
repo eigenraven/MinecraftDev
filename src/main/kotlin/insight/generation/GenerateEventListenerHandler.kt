@@ -28,6 +28,7 @@ import com.demonwav.mcdev.util.mapFirstNotNull
 import com.intellij.codeInsight.CodeInsightActionHandler
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
@@ -42,6 +43,10 @@ class GenerateEventListenerHandler : CodeInsightActionHandler {
         val eventListenerGenSupport = facet.modules.mapFirstNotNull { it.eventListenerGenSupport } ?: return
         val caretElement = file.findElementAt(editor.caretModel.offset) ?: return
         val context = caretElement.context ?: return
+
+        if (!EditorModificationUtil.requestWriting(editor)) {
+            return
+        }
 
         val chooser = TreeClassChooserFactory.getInstance(project)
             .createWithInnerClassesScopeChooser(
