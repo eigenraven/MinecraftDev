@@ -49,6 +49,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiUtil
 import java.lang.invoke.MethodHandles
 import java.util.Locale
+import java.util.concurrent.CancellationException
 import kotlin.math.min
 import kotlin.reflect.KClass
 import org.jetbrains.annotations.NonNls
@@ -358,7 +359,8 @@ inline fun <reified T> Iterable<*>.firstOfType(): T? {
     return this.firstOrNull { it is T } as? T
 }
 
-fun libraryKind(id: String): LibraryKind = LibraryKindRegistry.getInstance().findKindById(id) ?: LibraryKind.create(id)
+fun libraryKind(id: String): Lazy<LibraryKind> =
+    lazy { LibraryKindRegistry.getInstance().findKindById(id) ?: LibraryKind.create(id) }
 
 fun String.capitalize(): String =
     replaceFirstChar {
@@ -387,6 +389,19 @@ inline fun <T> runCatchingKtIdeaExceptions(action: () -> T): T? = try {
         }
         else -> throw e
     }
+}
+
+fun <T> Result<T>.getOrLogException(logger: Logger): T? {
+    return getOrLogException<T>(logger::error)
+}
+
+inline fun <T> Result<T>.getOrLogException(log: (Throwable) -> Unit): T? {
+    return onFailure { e ->
+        if (e is ProcessCanceledException || e is CancellationException) {
+            throw e
+        }
+        log(e)
+    }.getOrNull()
 }
 
 fun <T : Throwable> withSuppressed(original: T?, other: T): T =

@@ -23,4 +23,4 @@ package com.demonwav.mcdev.platform.architectury.framework
 import com.demonwav.mcdev.util.libraryKind
 import com.intellij.openapi.roots.libraries.LibraryKind
 
-val ARCHITECTURY_LIBRARY_KIND: LibraryKind = libraryKind("architectury-api")
+val ARCHITECTURY_LIBRARY_KIND: LibraryKind by libraryKind("architectury-api")

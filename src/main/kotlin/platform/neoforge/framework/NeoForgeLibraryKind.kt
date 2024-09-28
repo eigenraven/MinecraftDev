@@ -23,4 +23,4 @@ package com.demonwav.mcdev.platform.neoforge.framework
 import com.demonwav.mcdev.util.libraryKind
 import com.intellij.openapi.roots.libraries.LibraryKind
 
-val NEOFORGE_LIBRARY_KIND: LibraryKind = libraryKind("neoforge-library")
+val NEOFORGE_LIBRARY_KIND: LibraryKind by libraryKind("neoforge-library")

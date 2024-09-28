@@ -34,7 +34,7 @@ abstract class MixinConfigInspection : LocalInspectionTool() {
     protected abstract fun buildVisitor(holder: ProblemsHolder): PsiElementVisitor
 
     private fun checkFile(file: PsiFile): Boolean {
-        return file.fileType === MixinConfigFileType && MixinModuleType.isInModule(file)
+        return file.fileType is MixinConfigFileType && MixinModuleType.isInModule(file)
     }
 
     final override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {

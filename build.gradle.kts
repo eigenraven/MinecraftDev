@@ -34,7 +34,6 @@ plugins {
     `mcdev-publishing`
 }
 
-val ideaVersionName: String by project
 val coreVersion: String by project
 
 val gradleToolingExtension: Configuration by configurations.creating
@@ -43,7 +42,6 @@ val testLibs: Configuration by configurations.creating {
 }
 
 group = "com.demonwav.mcdev"
-version = "$ideaVersionName-$coreVersion"
 
 val gradleToolingExtensionSourceSet: SourceSet = sourceSets.create("gradle-tooling-extension") {
     configurations.named(compileOnlyConfigurationName) {

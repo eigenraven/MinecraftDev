@@ -23,4 +23,4 @@ package com.demonwav.mcdev.platform.fabric.framework
 import com.demonwav.mcdev.util.libraryKind
 import com.intellij.openapi.roots.libraries.LibraryKind
 
-val FABRIC_LIBRARY_KIND: LibraryKind = libraryKind("fabric-library")
+val FABRIC_LIBRARY_KIND: LibraryKind by libraryKind("fabric-library")

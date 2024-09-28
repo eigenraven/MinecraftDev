@@ -81,7 +81,7 @@ class MixinConfigImportOptimizer : ImportOptimizer {
         }
     }
 
-    override fun supports(file: PsiFile) = file is JsonFile && file.fileType == MixinConfigFileType
+    override fun supports(file: PsiFile) = file is JsonFile && file.fileType is MixinConfigFileType
 
     override fun processFile(file: PsiFile): Runnable {
         if (file !is JsonFile) {
