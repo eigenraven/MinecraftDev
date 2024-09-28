@@ -126,7 +126,12 @@ object ModsTomlKeyCompletionProvider : CompletionProvider<CompletionParameters>(
 
         result.addAllElements(
             variants.map { entry ->
-                LookupElementBuilder.create(entry, entry.key).withInsertHandler(TomlKeyInsertionHandler(keyValue))
+                var lookup = LookupElementBuilder.create(entry, entry.key)
+                    .withInsertHandler(TomlKeyInsertionHandler(keyValue))
+                if (entry.type != null) {
+                    lookup = lookup.withTypeText(entry.type.presentableName)
+                }
+                lookup
             }
         )
     }

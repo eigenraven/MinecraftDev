@@ -5,6 +5,21 @@
 ### Added
 
 - `plugin.yml`, `paper-plugin.yml` and `bungee.yml` main class reference and validity inspection
+- `mods.toml` and `neoforge.mods.toml` documentation for lookup elements
+- Support for split strings within inspections and method target references in Mixins ([#2358](https://github.com/minecraft-dev/MinecraftDev/pull/2358))
+- Mouse ungrab on breakpoint hit while running a Gradle task
+
+### Changed
+
+- More reliable ClassFqn creator property suggestions and validation
+- Lang spellchecking now works in dumb mode
+
+### Fixed
+
+- [#2362](https://github.com/minecraft-dev/MinecraftDev/issues/2362) CME in fabric.mod.json
+- Ignored annotations registrations
+- NeoGradle and NeoModDev Minecraft version import
+- [#2360](https://github.com/minecraft-dev/MinecraftDev/issues/2360) `Class initialization must not depend on services` error
 
 ## [1.8.1] - 2024-08-10
 

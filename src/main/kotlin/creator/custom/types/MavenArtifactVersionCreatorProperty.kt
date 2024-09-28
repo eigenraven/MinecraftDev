@@ -26,7 +26,7 @@ import com.demonwav.mcdev.creator.custom.TemplateEvaluator
 import com.demonwav.mcdev.creator.custom.TemplatePropertyDescriptor
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.util.SemanticVersion
-import com.intellij.openapi.diagnostic.getOrLogException
+import com.demonwav.mcdev.util.getOrLogException
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.observable.properties.GraphProperty
 import com.intellij.ui.ComboboxSpeedSearch

@@ -147,6 +147,8 @@ class MixinConfig(private val project: Project, private var json: JsonObject) {
     }
 
     private fun reformat() {
+        if(json.containingFile.name.endsWith(".json5")) return
+
         json = CodeStyleManager.getInstance(project).reformat(json) as JsonObject
         file?.let { file ->
             val psiFile = PsiManager.getInstance(project).findFile(file) as? JsonFile ?: return

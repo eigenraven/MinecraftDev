@@ -34,8 +34,6 @@ plugins {
     `mcdev-publishing`
 }
 
-val ideaVersionProvider: Provider<String> = providers.gradleProperty("ideaVersion")
-val ideaVersionName: String by project
 val coreVersion: String by project
 
 val gradleToolingExtension: Configuration by configurations.creating
@@ -44,7 +42,6 @@ val testLibs: Configuration by configurations.creating {
 }
 
 group = "com.demonwav.mcdev"
-version = "$ideaVersionName-$coreVersion"
 
 val gradleToolingExtensionSourceSet: SourceSet = sourceSets.create("gradle-tooling-extension") {
     configurations.named(compileOnlyConfigurationName) {
@@ -114,25 +111,6 @@ dependencies {
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.toml.lang")
         bundledPlugin("org.jetbrains.plugins.yaml")
-
-        testFramework(TestFrameworkType.JUnit5)
-        testFramework(TestFrameworkType.Plugin.Java)
-
-        pluginVerifier()
-    }
-
-    intellijPlatform {
-        intellijIdeaCommunity(ideaVersionProvider, useInstaller = false)
-        bundledPlugin("com.intellij.java")
-        bundledPlugin("org.jetbrains.idea.maven")
-        bundledPlugin("com.intellij.gradle")
-        bundledPlugin("org.intellij.groovy")
-        // For some reason the Kotlin plugin can't be resolved...
-        bundledPlugin("org.jetbrains.kotlin")
-        bundledPlugin("ByteCodeViewer")
-        bundledPlugin("org.intellij.intelliLang")
-        bundledPlugin("com.intellij.properties")
-        bundledPlugin("org.toml.lang")
 
         testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Plugin.Java)

@@ -20,7 +20,7 @@
 
 package com.demonwav.mcdev.creator
 
-import com.demonwav.mcdev.util.isJavaKeyword
+import com.demonwav.mcdev.util.isJavaSoftKeyword
 
 fun isValidClassName(className: String): Boolean {
     // default package
@@ -42,5 +42,5 @@ fun isValidClassName(className: String): Boolean {
         return false
     }
     // keyword identifier
-    return !fieldNameSplit.any { it.isJavaKeyword() }
+    return !fieldNameSplit.any { it.isJavaSoftKeyword() }
 }

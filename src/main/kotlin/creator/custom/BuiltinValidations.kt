@@ -23,13 +23,12 @@ package com.demonwav.mcdev.creator.custom
 import com.demonwav.mcdev.asset.MCDevBundle
 import com.demonwav.mcdev.platform.fabric.util.FabricVersions
 import com.demonwav.mcdev.util.SemanticVersion
-import com.intellij.lang.java.lexer.JavaLexer
+import com.demonwav.mcdev.util.isJavaKeyword
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.openapi.ui.validation.validationErrorIf
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.pom.java.LanguageLevel
 import javax.swing.JComponent
 
 object BuiltinValidations {
@@ -61,7 +60,7 @@ object BuiltinValidations {
 
     val validClassFqn = validationErrorIf<String>(MCDevBundle("creator.validation.class_fqn")) {
         it.isBlank() || it.split('.').any { part ->
-            !StringUtil.isJavaIdentifier(part) || JavaLexer.isKeyword(part, LanguageLevel.HIGHEST)
+            !StringUtil.isJavaIdentifier(part) || part.isJavaKeyword()
         }
     }
 

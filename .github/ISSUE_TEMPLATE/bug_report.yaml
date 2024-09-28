@@ -35,6 +35,7 @@ body:
         - Sponge
         - Architectury
         - Minecraft Forge
+        - NeoForge
         - Fabric
         - Velocity
         - Mixins

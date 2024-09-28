@@ -25,7 +25,7 @@ import com.demonwav.mcdev.creator.custom.PropertyDerivationSelect
 import com.demonwav.mcdev.creator.custom.TemplateEvaluator
 import com.demonwav.mcdev.creator.custom.TemplateValidationReporter
 import com.demonwav.mcdev.creator.custom.types.CreatorProperty
-import com.intellij.openapi.diagnostic.getOrLogException
+import com.demonwav.mcdev.util.getOrLogException
 import com.intellij.openapi.diagnostic.thisLogger
 
 class SelectPropertyDerivation(

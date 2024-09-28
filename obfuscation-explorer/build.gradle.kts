@@ -26,15 +26,11 @@ plugins {
     `mcdev-publishing`
 }
 
-val ideaVersionName: String by project
-val coreVersion: String by project
-
 val jflex by configurations
 val jflexSkeleton by configurations
 val grammarKit by configurations
 
 group = "io.mcdev.obfex"
-version = "$ideaVersionName-$coreVersion"
 
 intellijPlatform {
     projectName = "Obfuscation Explorer"

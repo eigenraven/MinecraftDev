@@ -31,10 +31,14 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceRegistrar
 
 class MixinConfigReferenceContributor : PsiReferenceContributor() {
-
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
+        val anyMixinConfigFileType = StandardPatterns.or(
+            StandardPatterns.`object`(MixinConfigFileType.Json),
+            StandardPatterns.`object`(MixinConfigFileType.Json5)
+        )
+
         val pattern = PlatformPatterns.psiElement(JsonStringLiteral::class.java)
-            .inFile(PlatformPatterns.psiFile().withFileType(StandardPatterns.`object`(MixinConfigFileType)))
+            .inFile(PlatformPatterns.psiFile().withFileType(anyMixinConfigFileType))
 
         registrar.registerReferenceProvider(pattern.isPropertyKey(), ConfigProperty)
         registrar.registerReferenceProvider(pattern.isPropertyValue("package"), MixinPackage)
@@ -47,3 +51,4 @@ class MixinConfigReferenceContributor : PsiReferenceContributor() {
         registrar.registerReferenceProvider(pattern.withParent(mixinList.isPropertyValue("client")), MixinClass)
     }
 }
+

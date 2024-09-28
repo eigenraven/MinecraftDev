@@ -23,10 +23,6 @@ plugins {
 }
 
 tasks.publishPlugin {
-    // Build numbers are used for nightlies
-    properties["buildNumber"]?.let { buildNumber ->
-        project.version = "${project.version}-$buildNumber"
-    }
     properties["mcdev.deploy.token"]?.let { deployToken ->
         token.set(deployToken.toString())
     }
