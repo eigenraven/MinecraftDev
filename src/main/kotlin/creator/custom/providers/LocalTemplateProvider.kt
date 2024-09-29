@@ -67,13 +67,11 @@ class LocalTemplateProvider : TemplateProvider {
         return panel {
             row(MCDevBundle("creator.ui.custom.path.label")) {
                 val pathChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
+                    title = MCDevBundle("creator.ui.custom.path.dialog.title")
                     description = MCDevBundle("creator.ui.custom.path.dialog.description")
                 }
-                textFieldWithBrowseButton(
-                    MCDevBundle("creator.ui.custom.path.dialog.title"),
-                    null,
-                    pathChooserDescriptor
-                ).align(AlignX.FILL)
+                textFieldWithBrowseButton(pathChooserDescriptor)
+                    .align(AlignX.FILL)
                     .columns(COLUMNS_LARGE)
                     .bindText(pathProperty)
                     .textValidation(

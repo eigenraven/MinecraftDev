@@ -8,7 +8,7 @@ fuel = "2.3.1"
 licenser = "0.6.1"
 changelog = "2.2.0"
 intellij-plugin = "2.1.0"
-intellij-ide = "243-EAP-SNAPSHOT"
+intellij-ide = "243.16718.32-EAP-SNAPSHOT"
 idea-ext = "1.1.8"
 psiPlugin = "243.7768"
 

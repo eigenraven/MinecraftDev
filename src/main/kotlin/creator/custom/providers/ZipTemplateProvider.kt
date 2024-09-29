@@ -68,13 +68,11 @@ class ZipTemplateProvider : TemplateProvider {
         return panel {
             row(MCDevBundle("creator.ui.custom.path.label")) {
                 val pathChooserDescriptor = FileChooserDescriptorFactory.createSingleLocalFileDescriptor()
+                    .withTitle(MCDevBundle("creator.ui.custom.archive.dialog.title"))
                     .withFileFilter { it.extension == "zip" }
                     .apply { description = MCDevBundle("creator.ui.custom.archive.dialog.description") }
-                textFieldWithBrowseButton(
-                    MCDevBundle("creator.ui.custom.archive.dialog.title"),
-                    null,
-                    pathChooserDescriptor
-                ).align(AlignX.FILL)
+                textFieldWithBrowseButton(pathChooserDescriptor)
+                    .align(AlignX.FILL)
                     .columns(COLUMNS_LARGE)
                     .bindText(pathProperty)
                     .textValidation(
