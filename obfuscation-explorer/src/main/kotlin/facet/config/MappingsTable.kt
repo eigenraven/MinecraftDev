@@ -154,7 +154,7 @@ class MappingsTable(private val config: ObfExFacetConfiguration) {
         private val model: MappingsFileTableModel,
         private val state: MutableList<MappingsTableRow> = model.state,
     ) : AbstractTableCellEditor() {
-        private val textField = textFieldWithBrowseButton(null, "Mappings Files", fileDesc, null)
+        private val textField = textFieldWithBrowseButton(null, fileDesc, null)
         private var row: Int = -1
 
         override fun getCellEditorValue(): Any? {
@@ -308,6 +308,6 @@ class MappingsTable(private val config: ObfExFacetConfiguration) {
             return uri
         }
 
-        private val fileDesc = FileChooserDescriptor(true, false, false, false, false, true)
+        private val fileDesc = FileChooserDescriptor(true, false, false, false, false, true).withTitle("Mappings Files")
     }
 }
