@@ -39,6 +39,7 @@ import com.demonwav.mcdev.util.synchronize
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.QuickFixFactory
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.template.Expression
@@ -71,6 +72,7 @@ import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.codeStyle.VariableKind
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.util.TypeConversionUtil
 import com.intellij.psi.util.parentOfType
@@ -327,12 +329,21 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
                 return
             }
             val method = startElement as PsiMethod
-            fixParameters(project, method.parameterList)
+            fixParameters(project, method.parameterList, false)
             fixReturnType(method)
             fixIntLikeTypes(method, editor ?: return)
         }
 
-        private fun fixParameters(project: Project, parameters: PsiParameterList) {
+        override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+            val method = PsiTreeUtil.findSameElementInCopy(startElement, file) as? PsiMethod
+                ?: return IntentionPreviewInfo.EMPTY
+            fixParameters(project, method.parameterList, true)
+            fixReturnType(method)
+            fixIntLikeTypes(method, editor)
+            return IntentionPreviewInfo.DIFF
+        }
+
+        private fun fixParameters(project: Project, parameters: PsiParameterList, preview: Boolean) {
             if (expectedParams == null) {
                 return
             }
@@ -366,8 +377,12 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
             // Restore the captured locals and sugars before applying the fix
             newParams.addAll(locals)
             newParams.addAll(sugars)
-            runWriteAction {
+            if (preview) {
                 parameters.synchronize(newParams)
+            } else {
+                runWriteAction {
+                    parameters.synchronize(newParams)
+                }
             }
         }
 

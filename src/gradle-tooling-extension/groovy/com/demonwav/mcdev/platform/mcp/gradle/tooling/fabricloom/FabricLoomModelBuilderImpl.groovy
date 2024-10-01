@@ -20,13 +20,14 @@
 
 package com.demonwav.mcdev.platform.mcp.gradle.tooling.fabricloom
 
-
 import org.gradle.api.Project
 import org.jetbrains.annotations.NotNull
+import org.jetbrains.plugins.gradle.tooling.AbstractModelBuilderService
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
-import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
+import org.jetbrains.plugins.gradle.tooling.Message
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 
-class FabricLoomModelBuilderImpl implements ModelBuilderService {
+class FabricLoomModelBuilderImpl extends AbstractModelBuilderService {
 
     @Override
     boolean canBuild(String modelName) {
@@ -34,7 +35,7 @@ class FabricLoomModelBuilderImpl implements ModelBuilderService {
     }
 
     @Override
-    Object buildAll(String modelName, Project project) {
+    Object buildAll(@NotNull String modelName, @NotNull Project project, @NotNull ModelBuilderContext context) {
         if (!project.plugins.hasPlugin('fabric-loom')) {
             return null
         }
@@ -43,7 +44,16 @@ class FabricLoomModelBuilderImpl implements ModelBuilderService {
 
         try {
             return build(project, loomExtension)
-        } catch (GroovyRuntimeException ignored) {
+        } catch (GroovyRuntimeException ex) {
+            context.messageReporter.createMessage()
+                    .withTitle("Minecraft Dev - Loom importing error")
+                    .withText("An error occurred while importing Loom data, falling back to legacy import")
+                    .withGroup("com.demonwav.mcdev")
+                    .withKind(Message.Kind.WARNING)
+                    .withStackTrace()
+                    .withException(ex)
+                    .reportMessage(project)
+
             // Must be using an older loom version, fallback.
             return buildLegacy(project, loomExtension)
         }
@@ -77,7 +87,13 @@ class FabricLoomModelBuilderImpl implements ModelBuilderService {
     List<FabricLoomModelImpl.DecompilerModelImpl> getDecompilers(Object loomExtension, boolean client) {
         loomExtension.decompilerOptions.collect {
             def task = loomExtension.getDecompileTask(it, client)
-            def sourcesPath = task.outputJar.get().getAsFile().getAbsolutePath()
+            def sourcesPath
+            if (task.hasProperty("outputJar")) {
+                // Pre 1.8
+                sourcesPath = task.outputJar.get().getAsFile().getAbsolutePath()
+            } else {
+                sourcesPath = task.sourcesOutputJar.get().getAsFile().getAbsolutePath()
+            }
             new FabricLoomModelImpl.DecompilerModelImpl(name: it.name, taskName: task.name, sourcesPath: sourcesPath)
         }
     }

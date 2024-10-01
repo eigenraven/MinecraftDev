@@ -87,11 +87,11 @@ class InjectAnnotationHandler : InjectorAnnotationHandler() {
                 val resolvedInsns = resolveInstructions(annotation, targetClass, targetMethod).ifEmpty { return@let }
                 for (insn in resolvedInsns) {
                     val locals = LocalVariables.getLocals(module, targetClass, targetMethod, insn.insn)
+                        ?.filterNotNull()
                         ?.drop(
                             Type.getArgumentTypes(targetMethod.desc).size +
                                 if (targetMethod.hasAccess(Opcodes.ACC_STATIC)) 0 else 1,
                         )
-                        ?.filterNotNull()
                         ?.filter { it.desc != null }
                         ?: continue
                     if (commonLocalsPrefix == null) {

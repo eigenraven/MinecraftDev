@@ -151,6 +151,24 @@ class SemanticVersion(
                 }
             }
 
+            // Regular Minecraft snapshot versions e.g. 24w39a
+            fun parseMinecraftSnapshot(value: String): SemanticVersion? {
+                if (value.length != 6 || value[2] != 'w' || !value[5].isLetter()) {
+                    return null
+                }
+
+                val shortYear = value.substring(0, 2).toIntOrNull() ?: return null
+                val week = value.substring(3, 5).toIntOrNull() ?: return null
+
+                val subParts = listOf(ReleasePart(week, week.toString()), TextPart(value[5].toString()))
+                val mainPart = PreReleasePart(shortYear, 'w', subParts, value)
+                return SemanticVersion(
+                    listOf(mainPart),
+                )
+            }
+
+            parseMinecraftSnapshot(value)?.let { return it }
+
             val decodedValue = value.split('+').joinToString("+") { URLDecoder.decode(it, Charsets.UTF_8) }
             val mainPartAndMetadata = decodedValue.split("+", limit = 2)
             val mainPart = mainPartAndMetadata[0]
