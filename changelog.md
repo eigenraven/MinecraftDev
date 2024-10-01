@@ -8,6 +8,11 @@
 - `mods.toml` and `neoforge.mods.toml` documentation for lookup elements
 - Support for split strings within inspections and method target references in Mixins ([#2358](https://github.com/minecraft-dev/MinecraftDev/pull/2358))
 - Mouse ungrab on breakpoint hit while running a Gradle task
+- JSON5 support to mixin config jsons ([#2375](https://github.com/minecraft-dev/MinecraftDev/pull/2375))
+- Value types in mods.toml key completion
+- Mixin injection signature fix preview
+- Loom 1.8 support
+- K2 mode compatibility
 
 ### Changed
 
@@ -20,6 +25,9 @@
 - Ignored annotations registrations
 - NeoGradle and NeoModDev Minecraft version import
 - [#2360](https://github.com/minecraft-dev/MinecraftDev/issues/2360) `Class initialization must not depend on services` error
+- [#2376](https://github.com/minecraft-dev/MinecraftDev/issues/2376) Error when generating event listeners in read only file
+- [#2308](https://github.com/minecraft-dev/MinecraftDev/issues/2308) Mixin Inject signature fix adds last parameter as first local
+- [#1813](https://github.com/minecraft-dev/MinecraftDev/issues/1813) Single character Accessor targets aren't inferred correctly
 
 ## [1.8.1] - 2024-08-10
 
