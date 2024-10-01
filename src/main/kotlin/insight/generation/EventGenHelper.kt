@@ -33,6 +33,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -108,7 +112,11 @@ class KotlinEventGenHelper : EventGenHelper {
         val factory = KtPsiFactory.contextual(context)
         val entry = factory.createSuperTypeEntry(fqn)
         val insertedEntry = ktClass.addSuperTypeListEntry(entry)
-        ShortenReferences.DEFAULT.process(insertedEntry)
+        when (KotlinPluginModeProvider.currentPluginMode) {
+            KotlinPluginMode.K1 -> ShortenReferences.DEFAULT.process(insertedEntry)
+            // TODO find a non-internal alternative to this...
+            KotlinPluginMode.K2 -> shortenReferences(insertedEntry)
+        }
     }
 
     override fun reformatAndShortenRefs(file: PsiFile, startOffset: Int, endOffset: Int) {
@@ -116,7 +124,10 @@ class KotlinEventGenHelper : EventGenHelper {
         val project = file.project
 
         val marker = JvmEventGenHelper.doReformat(project, file, startOffset, endOffset) ?: return
-
-        ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
+        when (KotlinPluginModeProvider.currentPluginMode) {
+            KotlinPluginMode.K1 -> ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
+            // TODO find a non-internal alternative to this...
+            KotlinPluginMode.K2 -> shortenReferencesInRange(file, marker.textRange)
+        }
     }
 }

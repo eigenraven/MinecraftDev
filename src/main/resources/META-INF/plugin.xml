@@ -1577,8 +1577,5 @@
                 description="Copy the reference to clipboard in Access Widener format">
             <add-to-group relative-to-action="CopyATAction" anchor="after" group-id="Copy.Paste.Special"/>
         </action>
-        <action id="com.demonwav.mcdev.creator.custom.expression.EvaluateTemplateConditionAction"
-                class="com.demonwav.mcdev.creator.custom.EvaluateTemplateExpressionAction"
-                text="Evaluate Template Expression"/>
     </actions>
 </idea-plugin>

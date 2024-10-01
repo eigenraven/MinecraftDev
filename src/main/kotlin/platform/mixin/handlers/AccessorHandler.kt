@@ -84,7 +84,7 @@ class AccessorHandler : MixinMemberAnnotationHandler {
         val result = PATTERN.matchEntire(memberName) ?: return null
         val prefix = result.groupValues[1]
         var name = result.groupValues[2]
-        if (name.uppercase(Locale.ENGLISH) != name) {
+        if (name.uppercase(Locale.ENGLISH) != name || name.length == 1) {
             name = name.decapitalize()
         }
         val type = if (prefix == "set") {

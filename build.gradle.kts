@@ -306,12 +306,13 @@ tasks.clean { delete(generate) }
 
 tasks.withType<PrepareSandboxTask> {
     pluginJar.set(tasks.jar.get().archiveFile)
+    val pluginDirName = intellijPlatform.projectName.get()
     from(externalAnnotationsJar) {
-        into("MinecraftDev/lib/resources")
+        into("$pluginDirName/lib/resources")
     }
     from("templates") {
         exclude(".git")
-        into("MinecraftDev/lib/resources/builtin-templates")
+        into("$pluginDirName/lib/resources/builtin-templates")
     }
 }
 
@@ -322,6 +323,12 @@ tasks.runIde {
         systemProperty("idea.ProcessCanceledException", "disabled")
         systemProperty("idea.debug.mode", "true")
     }
+
+    // Kotlin K2 is enabled by default, uncomment to switch to K1
+    // jvmArgumentProviders += CommandLineArgumentProvider {
+    //     listOf("-Didea.kotlin.plugin.use.k2=false")
+    // }
+
     // Set these properties to test different languages
     // systemProperty("user.language", "fr")
     // systemProperty("user.country", "FR")

@@ -25,12 +25,12 @@ import com.demonwav.mcdev.facet.MinecraftFacetDetector
 import com.demonwav.mcdev.platform.AbstractModule
 import com.demonwav.mcdev.platform.PlatformType
 import com.demonwav.mcdev.platform.mixin.config.MixinConfig
+import com.demonwav.mcdev.platform.mixin.config.MixinConfigFileType
 import com.demonwav.mcdev.platform.mixin.framework.MIXIN_LIBRARY_KIND
 import com.demonwav.mcdev.util.SemanticVersion
 import com.demonwav.mcdev.util.nullable
 import com.intellij.json.psi.JsonFile
 import com.intellij.json.psi.JsonObject
-import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -53,12 +53,7 @@ class MixinModule(facet: MinecraftFacet) : AbstractModule(facet) {
     override val icon: Icon? = null
 
     companion object {
-        private val mixinFileTypes by lazy {
-            listOfNotNull(
-                FileTypeManager.getInstance().findFileTypeByName("Mixin Json Configuration"),
-                FileTypeManager.getInstance().findFileTypeByName("Mixin Json5 Configuration")
-            )
-        }
+        private val mixinFileTypes = listOf(MixinConfigFileType.Json, MixinConfigFileType.Json5)
 
         fun getMixinConfigs(
             project: Project,
