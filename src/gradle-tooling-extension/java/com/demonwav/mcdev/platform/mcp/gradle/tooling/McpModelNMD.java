@@ -20,11 +20,14 @@
 
 package com.demonwav.mcdev.platform.mcp.gradle.tooling;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.List;
 
 public interface McpModelNMD {
-    String getNeoForgeVersion();
+    @Nullable String getNeoForgeVersion();
+    @Nullable String getNeoFormVersion();
     File getMappingsFile();
     List<File> getAccessTransformers();
 }

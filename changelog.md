@@ -1,6 +1,6 @@
 # Minecraft Development for IntelliJ
 
-## [Unreleased]
+## [1.8.2]
 
 ### Added
 
@@ -13,6 +13,7 @@
 - Mixin injection signature fix preview
 - Loom 1.8 support
 - K2 mode compatibility
+- [#2385](https://github.com/minecraft-dev/MinecraftDev/issues/2385) ModDevGradle Vanilla-Mode support
 
 ### Changed
 
@@ -28,6 +29,7 @@
 - [#2376](https://github.com/minecraft-dev/MinecraftDev/issues/2376) Error when generating event listeners in read only file
 - [#2308](https://github.com/minecraft-dev/MinecraftDev/issues/2308) Mixin Inject signature fix adds last parameter as first local
 - [#1813](https://github.com/minecraft-dev/MinecraftDev/issues/1813) Single character Accessor targets aren't inferred correctly
+- [#1886](https://github.com/minecraft-dev/MinecraftDev/issues/1886) Sync error in ForgeGradle composite builds
 
 ## [1.8.1] - 2024-08-10
 

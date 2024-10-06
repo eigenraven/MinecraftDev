@@ -330,16 +330,17 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
             }
             val method = startElement as PsiMethod
             fixParameters(project, method.parameterList, false)
-            fixReturnType(method)
-            fixIntLikeTypes(method, editor ?: return)
+            fixReturnType(method, editor ?: return, file, false)
+            fixIntLikeTypes(method, editor, false)
         }
 
         override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
             val method = PsiTreeUtil.findSameElementInCopy(startElement, file) as? PsiMethod
                 ?: return IntentionPreviewInfo.EMPTY
             fixParameters(project, method.parameterList, true)
-            fixReturnType(method)
-            fixIntLikeTypes(method, editor)
+            // Pass the original startElement because the underlying fix gets the preview element itself
+            fixReturnType(startElement as PsiMethod, editor, file, true)
+            fixIntLikeTypes(method, editor, true)
             return IntentionPreviewInfo.DIFF
         }
 
@@ -386,34 +387,43 @@ class InvalidInjectorMethodSignatureInspection : MixinInspection() {
             }
         }
 
-        private fun fixReturnType(method: PsiMethod) {
+        private fun fixReturnType(method: PsiMethod, editor: Editor, file: PsiFile, preview: Boolean) {
             if (expectedReturnType == null) {
                 return
             }
-            QuickFixFactory.getInstance()
-                .createMethodReturnFix(method, expectedReturnType, false)
-                .applyFix()
+            val fix = QuickFixFactory.getInstance().createMethodReturnFix(method, expectedReturnType, false)
+            if (preview) {
+                fix.generatePreview(file.project, editor, file)
+            } else {
+                fix.applyFix()
+            }
         }
 
-        private fun fixIntLikeTypes(method: PsiMethod, editor: Editor) {
+        private fun fixIntLikeTypes(method: PsiMethod, editor: Editor, preview: Boolean) {
             if (intLikeTypePositions.isEmpty()) {
                 return
             }
-            invokeLater {
-                WriteCommandAction.runWriteCommandAction(
-                    method.project,
-                    "Choose Int-Like Type",
-                    null,
-                    {
-                        val template = makeIntLikeTypeTemplate(method, intLikeTypePositions)
-                        if (template != null) {
-                            editor.caretModel.moveToOffset(method.startOffset)
-                            TemplateManager.getInstance(method.project)
-                                .startTemplate(editor, template)
-                        }
-                    },
-                    method.parentOfType<PsiFile>()!!
-                )
+            val runnable = {
+                val template = makeIntLikeTypeTemplate(method, intLikeTypePositions)
+                if (template != null) {
+                    editor.caretModel.moveToOffset(method.startOffset)
+                    TemplateManager.getInstance(method.project)
+                        .startTemplate(editor, template)
+                }
+            }
+
+            if (preview) {
+                runnable()
+            } else {
+                invokeLater {
+                    WriteCommandAction.runWriteCommandAction(
+                        method.project,
+                        "Choose Int-Like Type",
+                        null,
+                        runnable,
+                        method.parentOfType<PsiFile>()!!
+                    )
+                }
             }
         }
 
