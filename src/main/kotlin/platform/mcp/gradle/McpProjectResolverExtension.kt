@@ -59,7 +59,7 @@ class McpProjectResolverExtension : AbstractProjectResolverExtension() {
 
         val projectDirPath = Paths.get(projectDataNode.data.linkedExternalProjectPath)
         runGradleTask(project, projectDirPath) { settings ->
-            settings.taskNames = allTaskNames
+            settings.taskNames = allTaskNames.distinct()
         }
 
         super.resolveFinished(projectDataNode)

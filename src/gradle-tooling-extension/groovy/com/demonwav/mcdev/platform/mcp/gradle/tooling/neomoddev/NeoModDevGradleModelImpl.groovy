@@ -20,24 +20,14 @@
 
 package com.demonwav.mcdev.platform.mcp.gradle.tooling.neomoddev
 
-
 import com.demonwav.mcdev.platform.mcp.gradle.tooling.McpModelNMD
-import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 
-@CompileStatic
+@Immutable(knownImmutableClasses = [File])
 final class NeoModDevGradleModelImpl implements McpModelNMD, Serializable {
 
     final String neoForgeVersion
+    final String neoFormVersion
     final File mappingsFile
     final List<File> accessTransformers
-
-    NeoModDevGradleModelImpl(
-            final String neoForgeVersion,
-            final File mappingsFile,
-            final List<File> accessTransformers
-    ) {
-        this.neoForgeVersion = neoForgeVersion
-        this.mappingsFile = mappingsFile
-        this.accessTransformers = accessTransformers
-    }
 }
