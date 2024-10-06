@@ -44,8 +44,14 @@ object McpModelNMDHandler : McpModelDataHandler {
     ) {
         val data = resolverCtx.getExtraProject(gradleModule, McpModelNMD::class.java) ?: return
 
+        val minecraftVersion = when {
+            data.neoForgeVersion != null -> "1." + data.neoForgeVersion!!.substringBeforeLast('.').removeSuffix(".0")
+            data.neoFormVersion != null -> data.neoFormVersion!!.substringBeforeLast('-').removeSuffix(".0")
+            else -> null
+        }
+
         val state = McpModuleSettings.State(
-            "1." + data.neoForgeVersion.substringBeforeLast('.').removeSuffix(".0"),
+            minecraftVersion,
             null,
             data.mappingsFile?.absolutePath,
             SrgType.TSRG,

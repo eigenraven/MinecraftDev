@@ -47,10 +47,8 @@ final class NeoModDevGradleModelBuilderImpl implements ModelBuilderService {
             return null
         }
 
-        def neoforgeVersion = extension.version.get()
-        if (neoforgeVersion == null) {
-            return null
-        }
+        def neoforgeVersion = extension.version.getOrNull()
+        def neoFormVersion = extension.neoFormVersion.getOrNull()
 
         def accessTransformersRaw = extension.accessTransformers
         List<File> accessTransformers
@@ -74,7 +72,7 @@ final class NeoModDevGradleModelBuilderImpl implements ModelBuilderService {
         }
 
         //noinspection GroovyAssignabilityCheck
-        return new NeoModDevGradleModelImpl(neoforgeVersion, mappingsFile, accessTransformers)
+        return new NeoModDevGradleModelImpl(neoforgeVersion, neoFormVersion, mappingsFile, accessTransformers)
     }
 
     @Override
