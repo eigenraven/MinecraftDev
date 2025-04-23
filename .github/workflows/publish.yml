@@ -35,7 +35,7 @@ jobs:
           mkdir -p ~/.gradle/
           echo -e '\norg.gradle.jvmargs=-Xmx4G\n' >> ~/.gradle/gradle.properties
       - name: Publish plugin
-        run: ./gradlew clean :assemble :publishPlugin --stacktrace
+        run: ./gradlew clean :assemble :buildPlugin --stacktrace
       - name: Get tag name
         id: get_tag
         shell: bash
