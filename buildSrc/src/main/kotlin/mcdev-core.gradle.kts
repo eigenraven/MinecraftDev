@@ -76,10 +76,6 @@ tasks.withType<CompileUsingKotlinDaemon>().configureEach {
 }
 
 repositories {
-    intellijPlatform {
-        defaultRepositories()
-    }
-
     maven("https://maven.fabricmc.net/") {
         content {
             includeModule("net.fabricmc", "mapping-io")
@@ -104,6 +100,10 @@ repositories {
 
     mavenCentral()
     maven("https://repo.denwav.dev/repository/maven-public/")
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 val libs = the<LibrariesForLibs>()
