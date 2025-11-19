@@ -4,6 +4,9 @@ on:
     tags:
       - '*'
 
+env:
+  NO_SENTRY: true
+
 jobs:
   publish:
     name: Publish
